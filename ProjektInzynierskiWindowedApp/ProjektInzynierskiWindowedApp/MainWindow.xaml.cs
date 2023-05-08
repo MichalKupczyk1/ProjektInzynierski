@@ -83,7 +83,7 @@ namespace ProjektInzynierskiWindowedApp
                 }
                 else
                 {
-                    var fapg = new FAST();
+                    var fapg = new FAPG();
                     fapg.Pixels = arrayManager.Pixels;
                     fapg.Width = arrayManager.Width;
                     fapg.Height = arrayManager.Height;

@@ -20,14 +20,14 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
             {
                 for (int j = 1; j < Width - 1; j++)
                 {
-                    if (!DetectedNoise[i, j])
+                    if (DetectedNoise[i, j])
                     {
                         for (int k = -1; k < 2; k++)
                         {
                             for (int l = -1; l < 2; l++)
                             {
                                 tempPixels[index] = Pixels[i + l, j + k];
-                                goodPixels[index] = DetectedNoise[i + l, j + k];
+                                goodPixels[index] = !DetectedNoise[i + l, j + k];
                                 index++;
                             }
                         }
@@ -42,9 +42,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
 
         private Pixel CalculateMean(Pixel[] tempPixels, bool[] goodPixels)
         {
-            int r = 0;
-            int g = 0;
-            int b = 0;
+            int r = 0, g = 0, b = 0;
 
             int amount = 0;
             for (int i = 0; i < 9; i++)

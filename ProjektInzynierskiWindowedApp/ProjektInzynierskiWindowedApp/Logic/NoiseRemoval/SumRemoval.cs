@@ -18,9 +18,9 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
             var index = 0;
             var differenceArray = new double[WindowSize, WindowSize];
 
-            for (int i = 1; i < Height + 1; i++)
+            for (int i = 1; i < Height - 1 ; i++)
             {
-                for (int j = 1; j < Width + 1; j++)
+                for (int j = 1; j < Width - 1; j++)
                 {
                     for (int k = -1; k < 2; k++)
                     {
@@ -35,7 +35,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
                     var sum = CalculateSum(differenceArray);
                     //returns true if pixel is corrupted
                     if (IsCorrupted(sum))
-                        ChangePixel(tempPixels[(int)sum.Min()], i, j);
+                        ChangePixel(tempPixels[(int)sum.Min()], i, j); //indexof(min)
 
                     index = 0;
                 }

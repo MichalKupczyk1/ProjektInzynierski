@@ -8,10 +8,11 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
     {
         public override bool[,] DetectNoise()
         {
+            DetectedNoise = new bool[Height, Width];
+
             var impulsivenessResults = CalculateImpulsiveness();
             var impulsivenessData = impulsivenessResults.impulsivenessData;
             var impulsivenessCalculation = impulsivenessResults.impulsivenessCalculation;
-
 
             var minImpulsiveness = new short[WindowSize];
             var substraction = 0;
@@ -58,9 +59,9 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
             var impulsivenessCalculation = new short[Height + 2, Width + 2];
             var impulsivenessData = new short[Height + 2, Width + 2];
 
-            for (int i = 1; i < Height + 1; i++)
+            for (int i = 1; i < Height - 1; i++)
             {
-                for (int j = 1; j < Width + 1; j++)
+                for (int j = 1; j < Width - 1; j++)
                 {
                     for (int k = -1; k < 2; k++)
                     {

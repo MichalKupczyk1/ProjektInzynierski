@@ -8,13 +8,15 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
     {
         public override bool[,] DetectNoise()
         {
+            DetectedNoise = new bool[Height, Width];
+
             var tempPixels = new Pixel[WindowSize];
             var difference = new double[WindowSize, WindowSize];
             var index = 0;
 
-            for (int i = 1; i < Height + 1; i++)
+            for (int i = 1; i < Height - 1; i++)
             {
-                for (int j = 1; j < Width + 1; j++)
+                for (int j = 1; j < Width - 1; j++)
                 {
                     for (int k = -1; k < 2; k++)
                     {
