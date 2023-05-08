@@ -11,8 +11,8 @@ namespace ProjektInzynierskiWindowedApp.Structures.BitmapClasses
         public bool[,] DetectedNoise { get; set; }
         public Pixel[,] Pixels { get; set; }
         public int WindowSize { get; set; } = 9;
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public long Width { get; set; }
+        public long Height { get; set; }
         public int Threshold { get; set; }
     }
 }

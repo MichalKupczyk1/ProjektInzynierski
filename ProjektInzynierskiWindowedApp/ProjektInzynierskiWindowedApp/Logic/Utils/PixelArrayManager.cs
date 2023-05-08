@@ -5,26 +5,46 @@ namespace ProjektInzynierskiWindowedApp.Logic.Utils
 {
     public class PixelArrayManager
     {
-        public PixelArrayManager()
+        public long Width { get; set; }
+        public long Height { get; set; }
+        public int Step { get; set; }
+        public int Amount { get; set; }
+        public Pixel[,] Pixels { get; set; }
+
+        public PixelArrayManager(byte[] bytes)
         {
+            var dimentions = CalculateWidthAndHeight(bytes);
+            Width = dimentions.width;
+            Height = dimentions.height;
+            Step = CountStep(Width);
+            Amount = (int)(57 + (Width * Height * 3) + Step);
+            var pixels = SaveToPixelArray(bytes);
+            Pixels = SaveTo2DArray(pixels);
         }
 
-        public int CountStep(int width)
+        public byte[] ReturnBytesFrom2DPixelArray(Pixel[,] pixels, byte[] bytes, int amount)
+        {
+            var oneDimArray = ConvertFrom2DArray(pixels);
+            PixelToByteArray(ref bytes, oneDimArray, Width, amount, Step);
+            return bytes;
+        }
+
+        public int CountStep(long width)
         {
             return (width % 4 != 0) ? (short)(4 - (width % 4)) : 0;
         }
 
-        public Pixel[] SaveToPixelArray(byte[] bytes, int step, int byteAmount, int width)
+        public Pixel[] SaveToPixelArray(byte[] bytes)
         {
-            var pixelAmount = ((byteAmount - 57) / 3) + step;
+            var pixelAmount = ((Amount - 57) / 3) + Step;
             var pixels = new Pixel[pixelAmount];
             var z = 0;
 
-            for (int i = 0; i < byteAmount - 57;)
+            for (int i = 0; i < bytes.Length - 57;)
             {
-                if (step != 0 && (i + 3) % (width) == 0)
+                if (Step != 0 && (i + 3) % (Width) == 0)
                 {
-                    i += step;
+                    i += Step;
                     continue;
                 }
                 pixels[z] = new Pixel(bytes[i + 54], bytes[i + 55], bytes[i + 56]);
@@ -34,33 +54,33 @@ namespace ProjektInzynierskiWindowedApp.Logic.Utils
             return pixels;
         }
 
-        public Pixel[,] SaveTo2DArray(Pixel[] pixels, int width, int height)
+        public Pixel[,] SaveTo2DArray(Pixel[] pixels)
         {
-            var twoDimentionalArray = new Pixel[width, height];
+            var twoDimentionalArray = new Pixel[Height, Width];
             var count = 0;
 
-            for (int i = 0; i < height; i++)
-                for (int j = 0; j < width; j++)
+            for (int i = 0; i < Height; i++)
+                for (int j = 0; j < Width; j++)
                     twoDimentionalArray[i, j] = pixels[count++];
 
             return twoDimentionalArray;
         }
 
-        public Pixel[] ConvertFrom2DArray(Pixel[,] pixels, int width, int height)
+        public Pixel[] ConvertFrom2DArray(Pixel[,] pixels)
         {
-            var tempPixels = new Pixel[width * height];
+            var tempPixels = new Pixel[Width * Height];
             var z = 0;
 
-            for (int i = 0; i < height; i++)
-                for (int j = 0; j < width; j++)
+            for (int i = 0; i < Height; i++)
+                for (int j = 0; j < Width; j++)
                     tempPixels[z++] = pixels[i, j];
             return tempPixels;
         }
 
         public (long width, long height) CalculateWidthAndHeight(byte[] data)
         {
-            var width = (long)((int)data[0] + (256 * (int)data[1]) + ((Math.Pow(256, 2) * (int)data[2])) + (Math.Pow(256, 3) * (int)data[3]));
-            var height = (long)((int)data[4] + (256 * (int)data[5]) + ((Math.Pow(256, 2) * (int)data[6])) + (Math.Pow(256, 3) * (int)data[7]));
+            var width = (long)((int)data[18] + (256 * (int)data[19]) + ((Math.Pow(256, 2) * (int)data[20])) + (Math.Pow(256, 3) * (int)data[21]));
+            var height = (long)((int)data[22] + (256 * (int)data[23]) + ((Math.Pow(256, 2) * (int)data[24])) + (Math.Pow(256, 3) * (int)data[25]));
 
             return (width, height);
         }
@@ -110,7 +130,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.Utils
             return noiseArray;
         }
 
-        public void PixelToByteArray(byte[] bytes, Pixel[] pixels, int width, int amount, int step)
+        public void PixelToByteArray(ref byte[] bytes, Pixel[] pixels, long width, int amount, int step)
         {
             int a = 0;
             //skipping header info which is always the same as in the original image
