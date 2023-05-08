@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
 {
-    public class FAST : NoiseDetectionClass
+    public class FAST : NoiseDetection
     {
         public override bool[,] DetectNoise()
         {

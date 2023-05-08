@@ -1,16 +1,22 @@
 ﻿using ProjektInzynierskiWindowedApp.Logic.Utils;
 using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Media.Media3D;
+using System.Windows.Navigation;
 
-namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
+namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
 {
-    public class FAPG : NoiseDetection
+    public class SumRemoval : NoiseRemoval
     {
-        public override bool[,] DetectNoise()
+        public override Pixel[,] RemoveNoise()
         {
             var tempPixels = new Pixel[WindowSize];
-            var difference = new double[WindowSize, WindowSize];
             var index = 0;
+            var differenceArray = new double[WindowSize, WindowSize];
 
             for (int i = 1; i < Height + 1; i++)
             {
@@ -24,21 +30,23 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                         }
                     }
                     //passing differenceArray through reference to save results over there
-                    PixelManager.GetDifferenceTable(ref difference, ref tempPixels);
+                    PixelManager.GetDifferenceTable(ref differenceArray, ref tempPixels);
                     //calculating sum
-                    var sum = CalculateSum(difference);
-                    //returns true if pixel is corrupted, substracting one from indexes because bool array wasn't extended
-                    DetectedNoise[i - 1, j - 1] = IsCorrupted(sum);
+                    var sum = CalculateSum(differenceArray);
+                    //returns true if pixel is corrupted
+                    if (IsCorrupted(sum))
+                        ChangePixel(tempPixels[(int)sum.Min()], i, j);
 
                     index = 0;
                 }
             }
-            return DetectedNoise;
+            return Pixels;
         }
 
         private double[] CalculateSum(double[,] difference)
         {
             var sum = new double[WindowSize];
+
             int it = 0;
             for (int i = 0; i < WindowSize; i++)
                 sum[i] = 0;
@@ -46,7 +54,9 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
             for (int i = 0; i < WindowSize; i++)
             {
                 for (int j = 0; j < WindowSize; j++)
+                {
                     sum[it] += difference[i, j];
+                }
                 it++;
             }
             return sum;

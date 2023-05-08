@@ -59,8 +59,8 @@ namespace ProjektInzynierskiWindowedApp.Logic.Utils
 
         public (long width, long height) CalculateWidthAndHeight(byte[] data)
         {
-            var width = (long)((int)data[0] + (256 * (int)data[1]) + ((Math.Pow(256, 2) * (int)data[2])) + (Math.Pow(256, 3) * (int)data[3])));
-            var height = (long)((int)data[4] + (256 * (int)data[5]) + ((Math.Pow(256, 2) * (int)data[6])) + (Math.Pow(256, 3) * (int)data[7])));
+            var width = (long)((int)data[0] + (256 * (int)data[1]) + ((Math.Pow(256, 2) * (int)data[2])) + (Math.Pow(256, 3) * (int)data[3]));
+            var height = (long)((int)data[4] + (256 * (int)data[5]) + ((Math.Pow(256, 2) * (int)data[6])) + (Math.Pow(256, 3) * (int)data[7]));
 
             return (width, height);
         }
