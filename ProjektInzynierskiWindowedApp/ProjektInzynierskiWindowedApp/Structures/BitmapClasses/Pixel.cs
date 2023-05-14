@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProjektInzynierskiWindowedApp.Structures.BitmapClasses
 {
-    public class Pixel
+    public class Pixel : ICloneable
     {
         public byte R { get; set; } = 0;
         public byte G { get; set; } = 0;
@@ -18,5 +18,10 @@ namespace ProjektInzynierskiWindowedApp.Structures.BitmapClasses
             this.G = G;
             this.B = B;
         }
-    };
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+    }
 }

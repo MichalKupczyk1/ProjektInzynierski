@@ -67,7 +67,6 @@ namespace ProjektInzynierskiWindowedApp
             if (Image.Count() > 0)
             {
                 var arrayManager = new PixelArrayManager(Image);
-                var pixels = arrayManager.Pixels;
                 var detectedNoise = new bool[0, 0];
                 var result = new Pixel[0, 0];
 
@@ -88,14 +87,14 @@ namespace ProjektInzynierskiWindowedApp
                     fapg.Width = arrayManager.Width;
                     fapg.Height = arrayManager.Height;
                     //suggested value for FAST detection
-                    fapg.Threshold = 60;
+                    fapg.Threshold = 50;
                     detectedNoise = fapg.DetectNoise();
                 }
                 if (RemovalType == RemovalType.Mean)
                 {
                     var mean = new MeanRemoval();
                     mean.DetectedNoise = detectedNoise;
-                    mean.Pixels = pixels;
+                    mean.Pixels = arrayManager.Pixels;
                     mean.Width = arrayManager.Width;
                     mean.Height = arrayManager.Height;
 
@@ -105,20 +104,19 @@ namespace ProjektInzynierskiWindowedApp
                 {
                     var sum = new SumRemoval();
                     sum.DetectedNoise = detectedNoise;
-                    sum.Pixels = pixels;
+                    sum.Pixels = arrayManager.Pixels;
                     sum.Width = arrayManager.Width;
                     sum.Height = arrayManager.Height;
                     sum.Threshold = 300;
 
                     result = sum.RemoveNoise();
                 }
-                var oneDimPixelArray = arrayManager.ConvertFrom2DArray(result);
                 var imageCopy = Image;
-                arrayManager.PixelToByteArray(ref imageCopy, oneDimPixelArray, arrayManager.Width, arrayManager.Amount, arrayManager.Step);
-                if (imageCopy.Count() > 0)
-                    Image = imageCopy;
+                var oneDimPixelArray = arrayManager.ConvertFrom2DArray(result);
+                var bytes = arrayManager.PixelToByteArray(imageCopy, oneDimPixelArray, arrayManager.Width, arrayManager.Amount, arrayManager.Step);
 
-                File.WriteAllBytes("result.bmp", Image);
+                if (bytes.Count() > 0)
+                    File.WriteAllBytes("result.bmp", bytes);
             }
         }
 

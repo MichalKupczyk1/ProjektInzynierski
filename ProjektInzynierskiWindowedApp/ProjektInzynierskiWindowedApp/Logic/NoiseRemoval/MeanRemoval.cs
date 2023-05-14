@@ -1,4 +1,5 @@
-﻿using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
+﻿using ProjektInzynierskiWindowedApp.Logic.Utils;
+using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
             var index = 0;
             var tempPixels = new Pixel[WindowSize];
             var goodPixels = new bool[WindowSize];
+            var pixelClone = Pixels.Clone() as Pixel[,];
 
             for (int i = 1; i < Height - 1; i++)
             {
@@ -31,13 +33,14 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
                                 index++;
                             }
                         }
-                        ChangePixel(CalculateMean(tempPixels, goodPixels), i, j);
+                        var pixel = CalculateMean(tempPixels, goodPixels);
+                        pixelClone[i, j] = pixel;
+                        var test = Pixels[i, j];
                         index = 0;
                     }
                 }
             }
-
-            return Pixels;
+            return pixelClone;
         }
 
         private Pixel CalculateMean(Pixel[] tempPixels, bool[] goodPixels)
@@ -57,8 +60,8 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
                     amount++;
                 }
             }
-            if (amount > 3)
-                return new Pixel((byte)(b / amount), (byte)(g / amount), (byte)(r / amount));
+            if (amount > 4)
+                return new Pixel((byte)(r / amount), (byte)(g / amount), (byte)(b / amount));
             else
                 return tempPixels[4];
         }

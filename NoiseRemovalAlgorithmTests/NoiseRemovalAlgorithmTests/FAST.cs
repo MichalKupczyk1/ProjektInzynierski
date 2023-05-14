@@ -1,14 +1,22 @@
-﻿using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
+namespace NoiseRemovalAlgorithmTests
 {
-    public class FAST : NoiseDetection
+    public class FAST
     {
-        public override bool[,] DetectNoise()
+        public long Width { get; set; }
+        public long Height { get; set; }
+        public int WindowSize { get; set; }
+        public int Threshold { get; set; }
+        public Pixel[,] Pixels { get; set; }
+
+        public bool[,] DetectNoise()
         {
-            DetectedNoise = new bool[Height, Width];
+            var detectedNoise = new bool[Height, Width];
 
             var impulsivenessResults = CalculateImpulsiveness();
             var impulsivenessData = impulsivenessResults.impulsivenessData;
@@ -32,12 +40,12 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                     substraction = FindImpulsiveness(minImpulsiveness);
                     impulsivenessCalculation[i, j] = (short)(impulsivenessData[i, j] - substraction);
 
-                    DetectedNoise[i - 1, j - 1] = impulsivenessCalculation[i, j] > Threshold;
+                    detectedNoise[i - 1, j - 1] = impulsivenessCalculation[i, j] > Threshold;
 
                     counter = 0;
                 }
             }
-            return DetectedNoise;
+            return detectedNoise;
         }
 
         private short FindImpulsiveness(short[] array)
@@ -70,7 +78,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                             tempPixels[index++] = Pixels[i + l, j + k];
                         }
                     }
-                    var difference = CalculateDistance(tempPixels);
+                    var difference = CalculateDistance(tempPixels, i, j);
                     impulsivenessData[i, j] = difference.Max();
                     impulsivenessCalculation[i, j] = impulsivenessData[i, j];
                     index = 0;
@@ -79,7 +87,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
             return (impulsivenessData, impulsivenessCalculation);
         }
 
-        private short[] CalculateDistance(Pixel[] tempPixels)
+        private short[] CalculateDistance(Pixel[] tempPixels, int ii, int jj)
         {
             var distances = new short[3];
             var difference = new short[WindowSize];
