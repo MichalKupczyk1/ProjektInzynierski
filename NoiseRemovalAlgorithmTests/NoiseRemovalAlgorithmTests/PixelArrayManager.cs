@@ -29,7 +29,7 @@ namespace NoiseRemovalAlgorithmTests
         {
             var oneDimArray = ConvertFrom2DArray(pixels);
 
-            return PixelToByteArray(bytes, oneDimArray, Width, amount, Step); ;
+            return PixelToByteArray(bytes, oneDimArray);
         }
 
         public int CountStep(long width)
@@ -138,20 +138,20 @@ namespace NoiseRemovalAlgorithmTests
             return noiseArray;
         }
 
-        public byte[] PixelToByteArray(byte[] bytes, Pixel[] pixels, long width, int amount, int step)
+        public byte[] PixelToByteArray(byte[] bytes, Pixel[] pixels)
         {
-            var result = new byte[amount];
+            var result = new byte[Amount];
 
             for (int i = 0; i < 54; i++)
                 result[i] = bytes[i];
             int a = 0;
             var counter = 0;
             //skipping header info which is always the same as in the original image
-            for (int i = 54; i < amount - 3;)
+            for (int i = 54; i < Amount - 3;)
             {
-                if (step != 0 && counter != 0 && counter / 3 % width == 0)
+                if (Step != 0 && counter != 0 && counter / 3 % Width == 0)
                 {
-                    i += step;
+                    i += Step;
                     counter = 0;
                 }
                 result[i] = pixels[a].R;

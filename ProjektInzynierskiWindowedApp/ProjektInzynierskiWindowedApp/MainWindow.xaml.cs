@@ -67,53 +67,18 @@ namespace ProjektInzynierskiWindowedApp
             if (Image.Count() > 0)
             {
                 var arrayManager = new PixelArrayManager(Image);
-                var detectedNoise = new bool[0, 0];
                 var result = new Pixel[0, 0];
 
-                if (DetectionType == DetectionType.FAST)
-                {
-                    var fast = new FAST();
-                    fast.Pixels = arrayManager.Pixels;
-                    fast.Width = arrayManager.Width;
-                    fast.Height = arrayManager.Height;
-                    //suggested value for FAST detection
-                    fast.Threshold = 60;
-                    detectedNoise = fast.DetectNoise();
-                }
-                else
-                {
-                    var fapg = new FAPG();
-                    fapg.Pixels = arrayManager.Pixels;
-                    fapg.Width = arrayManager.Width;
-                    fapg.Height = arrayManager.Height;
-                    //suggested value for FAST detection
-                    fapg.Threshold = 50;
-                    detectedNoise = fapg.DetectNoise();
-                }
-                if (RemovalType == RemovalType.Mean)
-                {
-                    var mean = new MeanRemoval();
-                    mean.DetectedNoise = detectedNoise;
-                    mean.Pixels = arrayManager.Pixels;
-                    mean.Width = arrayManager.Width;
-                    mean.Height = arrayManager.Height;
+                var sum = new SumRemoval();
+                sum.Pixels = arrayManager.ExtendedArray;
+                sum.Width = arrayManager.ExtendedWidth;
+                sum.Height = arrayManager.ExtendedHeight;
+                sum.Threshold = 70;
 
-                    result = mean.RemoveNoise();
-                }
-                else
-                {
-                    var sum = new SumRemoval();
-                    sum.DetectedNoise = detectedNoise;
-                    sum.Pixels = arrayManager.Pixels;
-                    sum.Width = arrayManager.Width;
-                    sum.Height = arrayManager.Height;
-                    sum.Threshold = 300;
+                result = sum.RemoveNoise();
+                arrayManager.ExtendedArray = result;
 
-                    result = sum.RemoveNoise();
-                }
-                var imageCopy = Image;
-                var oneDimPixelArray = arrayManager.ConvertFrom2DArray(result);
-                var bytes = arrayManager.PixelToByteArray(imageCopy, oneDimPixelArray, arrayManager.Width, arrayManager.Amount, arrayManager.Step);
+                var bytes = arrayManager.ReturnBytesFrom2DPixelArray();
 
                 if (bytes.Count() > 0)
                     File.WriteAllBytes("result.bmp", bytes);

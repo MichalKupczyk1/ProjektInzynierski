@@ -18,7 +18,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
             var index = 0;
             var differenceArray = new double[WindowSize, WindowSize];
 
-            for (int i = 1; i < Height - 1 ; i++)
+            for (int i = 1; i < Height - 1; i++)
             {
                 for (int j = 1; j < Width - 1; j++)
                 {
@@ -35,12 +35,27 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
                     var sum = CalculateSum(differenceArray);
                     //returns true if pixel is corrupted
                     if (IsCorrupted(sum))
-                        ChangePixel(tempPixels[(int)sum.Min()], i, j); //indexof(min)
+                        Pixels[i, j] = tempPixels[ReturnIndexOfMin(sum)];
 
                     index = 0;
                 }
             }
             return Pixels;
+        }
+
+        private int ReturnIndexOfMin(double[] sum)
+        {
+            var max = sum.Max();
+            var index = -1;
+            for (int i = 0; i < sum.Length; i++)
+            {
+                if (sum[i] < max)
+                {
+                    max = sum[i];
+                    index = i;
+                }
+            }
+            return index;
         }
 
         private double[] CalculateSum(double[,] difference)
@@ -76,3 +91,4 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
         }
     }
 }
+
