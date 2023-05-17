@@ -22,8 +22,8 @@ namespace ProjektInzynierskiWindowedApp.Logic.Utils
             var dimentions = CalculateWidthAndHeight(bytes);
             Width = dimentions.width;
             Height = dimentions.height;
-            Step = CountStep(Width);
-            Amount = (int)(57 + (Width * Height * 3) + Step);
+            Step = CountStep(Width * 3);
+            Amount = (int)(54 + (Width * Height * 3) + (Step * Height));
             var pixels = SaveToPixelArray(bytes);
             Pixels = SaveTo2DArray(pixels);
             Extend2DArray();

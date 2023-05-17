@@ -69,15 +69,53 @@ namespace ProjektInzynierskiWindowedApp
                 var arrayManager = new PixelArrayManager(Image);
                 var result = new Pixel[0, 0];
 
-                var sum = new SumRemoval();
-                sum.Pixels = arrayManager.ExtendedArray;
-                sum.Width = arrayManager.ExtendedWidth;
-                sum.Height = arrayManager.ExtendedHeight;
-                sum.Threshold = 70;
+                if (RemovalType == RemovalType.Sum)
+                {
+                    var sum = new SumRemoval();
+                    sum.Pixels = arrayManager.ExtendedArray;
+                    sum.Width = arrayManager.ExtendedWidth;
+                    sum.Height = arrayManager.ExtendedHeight;
+                    sum.Threshold = 70;
+                    result = sum.RemoveNoise();
+                    arrayManager.ExtendedArray = result;
+                }
+                else
+                {
+                    var detectedNoise = new bool[0,0];
 
-                result = sum.RemoveNoise();
-                arrayManager.ExtendedArray = result;
+                    if (DetectionType == DetectionType.FAPG)
+                    {
+                        var fapg = new FAPG();
+                        fapg.Width = arrayManager.ExtendedWidth;
+                        fapg.Height = arrayManager.ExtendedHeight;
+                        fapg.Threshold = 300;
+                        fapg.Pixels = arrayManager.ExtendedArray;
+                        fapg.WindowSize = 9;
+                        detectedNoise = fapg.DetectNoise();
+                    }
+                    else if (DetectionType == DetectionType.FAST)
+                    {
+                        var fast = new FAST();
+                        fast.Width = arrayManager.ExtendedWidth;
+                        fast.Height = arrayManager.ExtendedHeight;
+                        fast.Threshold = 70;
+                        fast.Pixels = arrayManager.ExtendedArray;
+                        fast.WindowSize = 9;
+                        detectedNoise = fast.DetectNoise();
+                    }
 
+                    if (RemovalType == RemovalType.Mean)
+                    {
+                        var mean = new MeanRemoval();
+                        mean.Pixels = arrayManager.ExtendedArray;
+                        mean.Height = arrayManager.ExtendedHeight;
+                        mean.Width = arrayManager.ExtendedWidth;
+                        mean.Threshold = 70;
+                        mean.DetectedNoise = detectedNoise;
+                        result = mean.RemoveNoise();
+                        arrayManager.ExtendedArray = result;
+                    }
+                }
                 var bytes = arrayManager.ReturnBytesFrom2DPixelArray();
 
                 if (bytes.Count() > 0)
@@ -92,7 +130,7 @@ namespace ProjektInzynierskiWindowedApp
 
         private void cmb_RemovalType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.RemovalType = (RemovalType)cmb_DetectionType.SelectedIndex;
+            this.RemovalType = (RemovalType)cmb_RemovalType.SelectedIndex;
         }
     }
 }

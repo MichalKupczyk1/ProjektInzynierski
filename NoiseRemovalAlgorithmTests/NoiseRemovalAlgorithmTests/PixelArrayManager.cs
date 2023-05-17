@@ -10,31 +10,83 @@ namespace NoiseRemovalAlgorithmTests
     {
         public long Width { get; set; }
         public long Height { get; set; }
+        public long ExtendedHeight { get => Height + 2; }
+        public long ExtendedWidth { get => Width + 2; }
         public int Step { get; set; }
         public int Amount { get; set; }
+        public byte[] Bytes { get; set; }
         public Pixel[,] Pixels { get; set; }
+        public Pixel[,] ExtendedArray { get; set; }
 
         public PixelArrayManager(byte[] bytes)
         {
+            Bytes = bytes;
             var dimentions = CalculateWidthAndHeight(bytes);
             Width = dimentions.width;
             Height = dimentions.height;
-            Step = CountStep(Width);
-            Amount = bytes.Length;
+            Step = CountStep(Width * 3);
+            Amount = (int)(54 + (Width * Height * 3) + (Step * Height));
             var pixels = SaveToPixelArray(bytes);
             Pixels = SaveTo2DArray(pixels);
+            Extend2DArray();
         }
 
-        public byte[] ReturnBytesFrom2DPixelArray(Pixel[,] pixels, byte[] bytes, int amount)
+        private void Extend2DArray()
         {
-            var oneDimArray = ConvertFrom2DArray(pixels);
+            long extendedWidth = Width + 2, extendedHeight = Height + 2;
 
-            return PixelToByteArray(bytes, oneDimArray);
+            ExtendedArray = new Pixel[extendedHeight, extendedWidth];
+
+            ExtendedArray[0, 0] = Pixels[0, 0];
+            ExtendedArray[extendedHeight - 1, 0] = Pixels[Height - 1, 0];
+
+            ExtendedArray[0, extendedWidth - 1] = Pixels[0, Width - 1];
+            ExtendedArray[extendedHeight - 1, extendedWidth - 1] = Pixels[Height - 1, Width - 1];
+
+            var counter = 1;
+            for (int i = 0; i < Width; i++)
+            {
+                ExtendedArray[0, counter] = Pixels[0, i];
+                ExtendedArray[extendedHeight - 1, counter] = Pixels[Height - 1, i];
+                counter++;
+            }
+            counter = 1;
+            for (int i = 0; i < Height; i++)
+            {
+                ExtendedArray[counter, 0] = Pixels[i, 0];
+                ExtendedArray[counter, extendedWidth - 1] = Pixels[i, Width - 1];
+                counter++;
+            }
+
+            for (int i = 0; i < Height; i++)
+            {
+                for (int j = 0; j < Width; j++)
+                {
+                    ExtendedArray[i + 1, j + 1] = Pixels[i, j];
+                }
+            }
+        }
+
+        private void TransferDataFromExtendedArrayToPixels()
+        {
+            for (int i = 1; i < ExtendedHeight - 1; i++)
+            {
+                for (int j = 1; j < ExtendedWidth - 1; j++)
+                {
+                    Pixels[i - 1, j - 1] = ExtendedArray[i, j];
+                }
+            }
+        }
+
+        public byte[] ReturnBytesFrom2DPixelArray()
+        {
+            var oneDimArray = ConvertFrom2DArray();
+
+            return PixelToByteArray(oneDimArray); ;
         }
 
         public int CountStep(long width)
         {
-            width *= 3;
             return (width % 4 != 0) ? (short)(4 - (width % 4)) : 0;
         }
 
@@ -74,14 +126,17 @@ namespace NoiseRemovalAlgorithmTests
             return twoDimentionalArray;
         }
 
-        public Pixel[] ConvertFrom2DArray(Pixel[,] pixels)
+        private Pixel[] ConvertFrom2DArray()
         {
+            TransferDataFromExtendedArrayToPixels();
+
             var tempPixels = new Pixel[Width * Height];
             var z = 0;
 
             for (int i = 0; i < Height; i++)
                 for (int j = 0; j < Width; j++)
-                    tempPixels[z++] = pixels[i, j];
+                    tempPixels[z++] = Pixels[i, j];
+
             return tempPixels;
         }
 
@@ -138,12 +193,12 @@ namespace NoiseRemovalAlgorithmTests
             return noiseArray;
         }
 
-        public byte[] PixelToByteArray(byte[] bytes, Pixel[] pixels)
+        public byte[] PixelToByteArray(Pixel[] pixels)
         {
             var result = new byte[Amount];
 
             for (int i = 0; i < 54; i++)
-                result[i] = bytes[i];
+                result[i] = Bytes[i];
             int a = 0;
             var counter = 0;
             //skipping header info which is always the same as in the original image
