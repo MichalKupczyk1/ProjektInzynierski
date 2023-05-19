@@ -5,13 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ProjektInzynierskiWindowedApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="677">
+        Title="MainWindow" Height="450" Width="670" MinWidth="670" MinHeight="450" MaxWidth="670" MaxHeight="450">
     <Grid>
-        <Button x:Name="btn_zaladujBitmape" Content="Załaduj bitmapę" HorizontalAlignment="Left" Margin="34,351,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_zaladujBitmape_Click"/>
-        <Button x:Name="btn_usunSzum" Content="Usuń szum" HorizontalAlignment="Left" Margin="226,351,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_usunSzum_Click"/>
-        <ComboBox x:Name="cmb_DetectionType" HorizontalAlignment="Left" Margin="471,353,0,0" VerticalAlignment="Top" Width="173" Height="22" SelectionChanged="cmb_DetectionType_SelectionChanged"/>
-        <ComboBox x:Name="cmb_RemovalType" HorizontalAlignment="Left" Margin="471,383,0,0" VerticalAlignment="Top" Width="173" SelectionChanged="cmb_RemovalType_SelectionChanged"/>
-        <Image x:Name="img_Image" HorizontalAlignment="Left" Height="287" Margin="34,30,0,0" VerticalAlignment="Top" Width="612"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="55*"/>
+            <RowDefinition Height="379*"/>
+        </Grid.RowDefinitions>
+        <Button x:Name="btn_zaladujBitmape" Content="Załaduj bitmapę" HorizontalAlignment="Left" Margin="18,302,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_zaladujBitmape_Click" Grid.Row="1"/>
+        <Button x:Name="btn_usunSzum" Content="Usuń szum" HorizontalAlignment="Left" Margin="208,302,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_usunSzum_Click" Grid.Row="1"/>
+        <ComboBox x:Name="cmb_DetectionType" HorizontalAlignment="Left" Margin="471,298,0,0" VerticalAlignment="Top" Width="173" Height="22" SelectionChanged="cmb_DetectionType_SelectionChanged" Grid.Row="1"/>
+        <ComboBox x:Name="cmb_RemovalType" HorizontalAlignment="Left" Margin="471,328,0,0" VerticalAlignment="Top" Width="173" SelectionChanged="cmb_RemovalType_SelectionChanged" Grid.Row="1"/>
+        <Image x:Name="img_Image" HorizontalAlignment="Left" Height="287" Margin="18,30,0,0" VerticalAlignment="Top" Width="628" Grid.RowSpan="2"/>
 
     </Grid>
 </Window>

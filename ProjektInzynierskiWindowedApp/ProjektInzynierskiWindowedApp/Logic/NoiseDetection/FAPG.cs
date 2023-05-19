@@ -11,7 +11,6 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
             DetectedNoise = new bool[Height, Width];
 
             var tempPixels = new Pixel[WindowSize];
-            var difference = new double[WindowSize, WindowSize];
             var index = 0;
 
             for (int i = 1; i < Height - 1; i++)
@@ -25,46 +24,31 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                             tempPixels[index++] = Pixels[i + l, j + k];
                         }
                     }
-                    //passing differenceArray through reference to save results over there
-                    PixelManager.GetDifferenceTable(ref difference, ref tempPixels);
-                    //calculating sum
-                    var sum = CalculateSum(difference);
-                    //returns true if pixel is corrupted, substracting one from indexes because bool array wasn't extended
-                    DetectedNoise[i - 1, j - 1] = IsCorrupted(sum);
-
+                    DetectedNoise[i, j] = IsCorrupted(tempPixels);
                     index = 0;
                 }
             }
             return DetectedNoise;
         }
 
-        private double[] CalculateSum(double[,] difference)
+        private bool IsCorrupted(Pixel[] pixels)
         {
-            var sum = new double[WindowSize];
-            int it = 0;
-            for (int i = 0; i < WindowSize; i++)
-                sum[i] = 0;
-
-            for (int i = 0; i < WindowSize; i++)
-            {
-                for (int j = 0; j < WindowSize; j++)
-                    sum[it] += difference[i, j];
-                it++;
-            }
-            return sum;
-        }
-        private bool IsCorrupted(double[] sum)
-        {
-            int goodPixels = 0;
-
-            for (int i = 0; i < WindowSize; i++)
+            var amount = 0;
+            for (int i = 0; i < pixels.Length; i++)
             {
                 if (i == 4)
                     continue;
-                if (sum[i] < Threshold)
-                    goodPixels++;
+
+                var distance = CalculateDistance(pixels[4], pixels[i]);
+                if (distance < (double)Threshold)
+                    amount++;
             }
-            return goodPixels < 3;
+            return amount < 2;
+        }
+
+        private double CalculateDistance(Pixel left, Pixel right)
+        {
+            return Math.Sqrt(Math.Pow(right.R - left.R, 2) + Math.Pow(right.G - left.G, 2) + Math.Pow(right.B - left.B, 2));
         }
     }
 }

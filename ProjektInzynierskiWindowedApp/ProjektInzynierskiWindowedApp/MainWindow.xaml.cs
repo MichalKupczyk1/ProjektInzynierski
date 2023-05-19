@@ -19,6 +19,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Application;
 
 namespace ProjektInzynierskiWindowedApp
 {
@@ -30,6 +32,7 @@ namespace ProjektInzynierskiWindowedApp
         private byte[] Image { get; set; }
         public DetectionType DetectionType { get; set; } = DetectionType.FAST;
         public RemovalType RemovalType { get; set; } = RemovalType.Mean;
+        public int Iters { get; set; } = 5;
         public MainWindow()
         {
             InitializeComponent();
@@ -43,8 +46,8 @@ namespace ProjektInzynierskiWindowedApp
             cmb_DetectionType.SelectedIndex = 0;
 
             cmb_RemovalType.Items.Add(RemovalType.Mean.ToString());
-            cmb_RemovalType.Items.Add(RemovalType.Sum.ToString());
             cmb_RemovalType.SelectedIndex = 0;
+            Iters = 5;
         }
 
         private void btn_zaladujBitmape_Click(object sender, RoutedEventArgs e)
@@ -57,9 +60,17 @@ namespace ProjektInzynierskiWindowedApp
             {
                 var filePath = openFileDialog.FileName;
                 bytes = File.ReadAllBytes(filePath);
+                WyswietlBitmape(filePath);
             }
             if (bytes.Count() > 0)
                 Image = bytes;
+        }
+
+        private void WyswietlBitmape(string path)
+        {
+            ImageSource imageSource = new BitmapImage(new Uri(path));
+            this.img_Image.Source = imageSource;
+            this.img_Image.Stretch = Stretch.None;
         }
 
         private void btn_usunSzum_Click(object sender, RoutedEventArgs e)
@@ -68,59 +79,65 @@ namespace ProjektInzynierskiWindowedApp
             {
                 var arrayManager = new PixelArrayManager(Image);
                 var result = new Pixel[0, 0];
+                var detectedNoise = new bool[0, 0];
 
-                if (RemovalType == RemovalType.Sum)
+                for (int i = 0; i < Iters; i++)
                 {
-                    var sum = new SumRemoval();
-                    sum.Pixels = arrayManager.ExtendedArray;
-                    sum.Width = arrayManager.ExtendedWidth;
-                    sum.Height = arrayManager.ExtendedHeight;
-                    sum.Threshold = 70;
-                    result = sum.RemoveNoise();
+                    detectedNoise = DetectNoise(arrayManager, i);
+                    result = RemoveNoise(arrayManager, detectedNoise);
+
                     arrayManager.ExtendedArray = result;
-                }
-                else
-                {
-                    var detectedNoise = new bool[0,0];
-
-                    if (DetectionType == DetectionType.FAPG)
-                    {
-                        var fapg = new FAPG();
-                        fapg.Width = arrayManager.ExtendedWidth;
-                        fapg.Height = arrayManager.ExtendedHeight;
-                        fapg.Threshold = 70;
-                        fapg.Pixels = arrayManager.ExtendedArray;
-                        fapg.WindowSize = 9;
-                        detectedNoise = fapg.DetectNoise();
-                    }
-                    else if (DetectionType == DetectionType.FAST)
-                    {
-                        var fast = new FAST();
-                        fast.Width = arrayManager.ExtendedWidth;
-                        fast.Height = arrayManager.ExtendedHeight;
-                        fast.Threshold = 70;
-                        fast.Pixels = arrayManager.ExtendedArray;
-                        fast.WindowSize = 9;
-                        detectedNoise = fast.DetectNoise();
-                    }
-
-                    if (RemovalType == RemovalType.Mean)
-                    {
-                        var mean = new MeanRemoval();
-                        mean.Pixels = arrayManager.ExtendedArray;
-                        mean.Height = arrayManager.ExtendedHeight;
-                        mean.Width = arrayManager.ExtendedWidth;
-                        mean.Threshold = 70;
-                        mean.DetectedNoise = detectedNoise;
-                        result = mean.RemoveNoise();
-                        arrayManager.ExtendedArray = result;
-                    }
                 }
                 var bytes = arrayManager.ReturnBytesFrom2DPixelArray();
 
                 if (bytes.Count() > 0)
                     File.WriteAllBytes("result.bmp", bytes);
+                WyswietlBitmape("C:\\Users\\Michal\\source\\repos\\ProjektInzynierski\\ProjektInzynierskiWindowedApp\\ProjektInzynierskiWindowedApp\\bin\\Debug\\net6.0-windows\\result.bmp");
             }
+        }
+
+        private bool[,] DetectNoise(PixelArrayManager manager, int iteration)
+        {
+            if (DetectionType == DetectionType.FAPG)
+                return FAPGDetection(manager, 40 + (10 * (iteration - 1)));
+            else
+                return FASTDetection(manager, 40);
+        }
+
+        private Pixel[,] RemoveNoise(PixelArrayManager manager, bool[,] detectedNoise)
+        {
+            return MeanRemoval(manager, detectedNoise);
+        }
+
+        private Pixel[,] MeanRemoval(PixelArrayManager manager, bool[,] detectedNoise)
+        {
+            var mean = new MeanRemoval();
+            mean.Pixels = manager.ExtendedArray;
+            mean.Height = manager.ExtendedHeight;
+            mean.Width = manager.ExtendedWidth;
+            mean.DetectedNoise = detectedNoise;
+            return mean.RemoveNoise();
+        }
+        private bool[,] FASTDetection(PixelArrayManager manager, int threshold)
+        {
+            var fast = new FAST();
+            fast.Width = manager.ExtendedWidth;
+            fast.Height = manager.ExtendedHeight;
+            fast.Threshold = threshold;
+            fast.Pixels = manager.ExtendedArray;
+            fast.WindowSize = 9;
+            return fast.DetectNoise();
+        }
+
+        private bool[,] FAPGDetection(PixelArrayManager manager, int threshold)
+        {
+            var fapg = new FAPG();
+            fapg.Width = manager.ExtendedWidth;
+            fapg.Height = manager.ExtendedHeight;
+            fapg.Threshold = threshold;
+            fapg.Pixels = manager.ExtendedArray;
+            fapg.WindowSize = 9;
+            return fapg.DetectNoise();
         }
 
         private void cmb_DetectionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
