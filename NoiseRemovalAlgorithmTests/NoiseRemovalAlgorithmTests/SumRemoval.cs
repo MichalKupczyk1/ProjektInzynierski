@@ -13,6 +13,7 @@ namespace NoiseRemovalAlgorithmTests
         public int WindowSize { get; set; }
         public int Threshold { get; set; }
         public Pixel[,] Pixels { get; set; }
+        public bool[,] CorruptedPixels { get; set; }
 
         public Pixel[,] RemoveNoise()
         {
@@ -37,7 +38,12 @@ namespace NoiseRemovalAlgorithmTests
                     var sum = CalculateSum(differenceArray);
                     //returns true if pixel is corrupted
                     if (IsCorrupted(sum))
+                    {
                         Pixels[i, j] = tempPixels[ReturnIndexOfMin(sum)];
+                        CorruptedPixels[i, j] = true;
+                    }
+                    else
+                        CorruptedPixels[i, j] = false;
 
                     index = 0;
                 }
@@ -49,7 +55,7 @@ namespace NoiseRemovalAlgorithmTests
         {
             var max = sum.Max();
             var index = -1;
-            for(int i =0;i < sum.Length; i++)
+            for (int i = 0; i < sum.Length; i++)
             {
                 if (sum[i] < max)
                 {
@@ -91,6 +97,7 @@ namespace NoiseRemovalAlgorithmTests
             }
             return goodPixels < 3;
         }
+
         private void GetDifferenceTable(ref double[,] difference, ref Pixel[] pixels)
         {
             for (int k = 0; k < 9; k++)

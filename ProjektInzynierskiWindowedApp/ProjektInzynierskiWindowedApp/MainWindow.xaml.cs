@@ -88,7 +88,7 @@ namespace ProjektInzynierskiWindowedApp
                         var fapg = new FAPG();
                         fapg.Width = arrayManager.ExtendedWidth;
                         fapg.Height = arrayManager.ExtendedHeight;
-                        fapg.Threshold = 300;
+                        fapg.Threshold = 70;
                         fapg.Pixels = arrayManager.ExtendedArray;
                         fapg.WindowSize = 9;
                         detectedNoise = fapg.DetectNoise();

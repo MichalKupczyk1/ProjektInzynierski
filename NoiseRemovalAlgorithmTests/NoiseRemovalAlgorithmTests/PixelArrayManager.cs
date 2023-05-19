@@ -160,17 +160,17 @@ namespace NoiseRemovalAlgorithmTests
             return coordinates;
         }
 
-        public bool[,] AddNoise(Pixel[,] pixels, int width, int height, double noiseLevel)
+        public bool[,] AddNoise(double noiseLevel)
         {
-            bool[,] noiseArray = new bool[width, height];
+            bool[,] noiseArray = new bool[ExtendedHeight, ExtendedWidth];
 
-            int length = width * height;
+            int length = (int)(ExtendedWidth * ExtendedHeight);
             Coordinates[] coordinates = new Coordinates[length];
 
             int z = 0;
-            for (int i = 0; i < height; i++)
+            for (int i = 0; i < ExtendedHeight; i++)
             {
-                for (int j = 0; j < width; j++)
+                for (int j = 0; j < ExtendedWidth; j++)
                 {
                     coordinates[z].X = i;
                     coordinates[z].Y = j;
@@ -183,13 +183,14 @@ namespace NoiseRemovalAlgorithmTests
 
             for (int i = 0; i < length * noiseLevel; i++)
             {
-                pixels[coordinates[i].X, coordinates[i].Y] = new Pixel((byte)randomGenerator.Next(255), (byte)randomGenerator.Next(255), (byte)randomGenerator.Next(255));
-                noiseArray[coordinates[i].X, coordinates[i].Y] = false;
+                ExtendedArray[coordinates[i].X, coordinates[i].Y] = new Pixel((byte)randomGenerator.Next(255), (byte)randomGenerator.Next(255), (byte)randomGenerator.Next(255));
+                //noiseArray[coordinates[i].X, coordinates[i].Y] = false;
             }
 
+            /*
             for (int i = (int)(length * noiseLevel); i < length; i++)
                 noiseArray[coordinates[i].X, coordinates[i].Y] = true;
-
+            */
             return noiseArray;
         }
 
@@ -220,7 +221,7 @@ namespace NoiseRemovalAlgorithmTests
         }
     }
 
-    public class Coordinates
+    public struct Coordinates
     {
         public int X { get; set; }
         public int Y { get; set; }

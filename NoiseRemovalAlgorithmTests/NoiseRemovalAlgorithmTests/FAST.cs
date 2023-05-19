@@ -26,9 +26,9 @@ namespace NoiseRemovalAlgorithmTests
             var substraction = 0;
             var counter = 0;
 
-            for (int i = 1; i < Height; i++)
+            for (int i = 1; i < Height - 1; i++)
             {
-                for (int j = 1; j < Width; j++)
+                for (int j = 1; j < Width - 1; j++)
                 {
                     for (int k = -1; k < 2; k++)
                     {
@@ -40,7 +40,7 @@ namespace NoiseRemovalAlgorithmTests
                     substraction = FindImpulsiveness(minImpulsiveness);
                     impulsivenessCalculation[i, j] = (short)(impulsivenessData[i, j] - substraction);
 
-                    detectedNoise[i - 1, j - 1] = impulsivenessCalculation[i, j] > Threshold;
+                    detectedNoise[i, j] = impulsivenessCalculation[i, j] > Threshold;
 
                     counter = 0;
                 }
@@ -64,8 +64,8 @@ namespace NoiseRemovalAlgorithmTests
             var index = 0;
             var tempPixels = new Pixel[WindowSize];
 
-            var impulsivenessCalculation = new short[Height + 2, Width + 2];
-            var impulsivenessData = new short[Height + 2, Width + 2];
+            var impulsivenessCalculation = new short[Height, Width];
+            var impulsivenessData = new short[Height, Width];
 
             for (int i = 1; i < Height - 1; i++)
             {
@@ -79,12 +79,36 @@ namespace NoiseRemovalAlgorithmTests
                         }
                     }
                     var difference = CalculateDistance(tempPixels, i, j);
-                    impulsivenessData[i, j] = difference.Max();
+                    impulsivenessData[i, j] = (short)FindMin(difference); //suma dwoch najmniejszych z pominieciem zera
                     impulsivenessCalculation[i, j] = impulsivenessData[i, j];
                     index = 0;
                 }
             }
             return (impulsivenessData, impulsivenessCalculation);
+        }
+
+        private int FindMin(short[] difference)
+        {
+            var firstMin = short.MaxValue;
+            var secondMin = short.MaxValue;
+
+            for (int i = 0; i < difference.Length; i++)
+            {
+                if (i == 4)
+                    continue;
+                if (difference[i] < firstMin)
+                {
+                    secondMin = firstMin;
+                    firstMin = difference[i];
+                    continue;
+                }
+                if (difference[i] < secondMin)
+                {
+                    secondMin = difference[i];
+                }
+
+            }
+            return firstMin + secondMin;
         }
 
         private short[] CalculateDistance(Pixel[] tempPixels, int ii, int jj)
@@ -100,7 +124,7 @@ namespace NoiseRemovalAlgorithmTests
                 distances[1] = (short)Math.Abs(tempPixels[4].G - tempPixels[i].G);
                 distances[2] = (short)Math.Abs(tempPixels[4].B - tempPixels[i].B);
 
-                difference[i] = distances.Min();
+                difference[i] = distances.Max();
             }
             difference[4] = 0;
             return difference;
