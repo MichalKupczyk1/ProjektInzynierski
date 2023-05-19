@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NoiseRemovalAlgorithmTests
 {
-    public class MeanRemoval
+    public class VMF
     {
         public long Width { get; set; }
         public long Height { get; set; }
@@ -37,7 +37,7 @@ namespace NoiseRemovalAlgorithmTests
                                 index++;
                             }
                         }
-                        var pixel = CalculateMean(tempPixels, goodPixels);
+                        var pixel = CalculateMedian(tempPixels, goodPixels);
                         pixelClone[i, j] = pixel;
                         index = 0;
                     }
@@ -46,27 +46,32 @@ namespace NoiseRemovalAlgorithmTests
             return pixelClone;
         }
 
-        private Pixel CalculateMean(Pixel[] tempPixels, bool[] goodPixels)
+        private Pixel CalculateMedian(Pixel[] tempPixels, bool[] goodPixels)
         {
-            int r = 0, g = 0, b = 0;
+            var rs = new short[goodPixels.Length];
+            var gs = new short[goodPixels.Length];
+            var bs = new short[goodPixels.Length];
+            var counter = 0;
 
-            int amount = 0;
             for (int i = 0; i < 9; i++)
             {
-                if (i == 4)
+                if (i == 4 || !goodPixels[i])
                     continue;
-                if (goodPixels[i])
-                {
-                    r += tempPixels[i].R;
-                    g += tempPixels[i].G;
-                    b += tempPixels[i].B;
-                    amount++;
-                }
+
+                rs[counter] = tempPixels[i].R;
+                gs[counter] = tempPixels[i].G;
+                bs[counter] = tempPixels[i].B;
+                counter++;
             }
-            if (amount > 4)
-                return new Pixel((byte)(r / amount), (byte)(g / amount), (byte)(b / amount));
-            else
-                return tempPixels[4];
+
+            if (counter > 0)
+            {
+                var R = counter % 2 == 0 ? rs[counter / 2 + 1] : ((rs[counter / 2] + rs[counter / 2 + 1]) / 2);
+                var G = counter % 2 == 0 ? gs[counter / 2 + 1] : ((gs[counter / 2] + gs[counter / 2 + 1]) / 2);
+                var B = counter % 2 == 0 ? bs[counter / 2 + 1] : ((bs[counter / 2] + bs[counter / 2 + 1]) / 2);
+                return new Pixel((byte)R, (byte)G, (byte)B);
+            }
+            return tempPixels[4];
         }
     }
 }
