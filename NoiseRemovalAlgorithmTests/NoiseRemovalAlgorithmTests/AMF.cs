@@ -63,7 +63,7 @@ namespace NoiseRemovalAlgorithmTests
                     amount++;
                 }
             }
-            if (amount > 4)
+            if (amount > 2)
                 return new Pixel((byte)(r / amount), (byte)(g / amount), (byte)(b / amount));
             else
                 return tempPixels[4];

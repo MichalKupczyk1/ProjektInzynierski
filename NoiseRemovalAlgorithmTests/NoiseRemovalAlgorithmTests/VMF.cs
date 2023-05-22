@@ -19,7 +19,6 @@ namespace NoiseRemovalAlgorithmTests
         {
             var index = 0;
             var tempPixels = new Pixel[WindowSize];
-            var goodPixels = new bool[WindowSize];
             var pixelClone = Pixels.Clone() as Pixel[,];
 
             for (int i = 1; i < Height - 1; i++)
@@ -33,12 +32,10 @@ namespace NoiseRemovalAlgorithmTests
                             for (int l = -1; l < 2; l++)
                             {
                                 tempPixels[index] = Pixels[i + l, j + k];
-                                goodPixels[index] = !CorruptedPixels[i + l, j + k];
                                 index++;
                             }
                         }
-                        var pixel = CalculateMedian(tempPixels, goodPixels);
-                        pixelClone[i, j] = pixel;
+                        pixelClone[i, j] = VMFReplacement(tempPixels);
                         index = 0;
                     }
                 }
@@ -46,32 +43,46 @@ namespace NoiseRemovalAlgorithmTests
             return pixelClone;
         }
 
-        private Pixel CalculateMedian(Pixel[] tempPixels, bool[] goodPixels)
+        private Pixel VMFReplacement(Pixel[] tempPixels)
         {
-            var rs = new short[goodPixels.Length];
-            var gs = new short[goodPixels.Length];
-            var bs = new short[goodPixels.Length];
-            var counter = 0;
+            var distances = CalculateDistances(tempPixels);
+            var dictionary = CalculateSum(distances);
+            var result = dictionary.Where(x => x.Value == dictionary.Min(y => y.Value)).FirstOrDefault();
+
+            return tempPixels[Convert.ToInt32(result.Key)];
+        }
+
+        private Dictionary<string, double> CalculateSum(double[,] distances)
+        {
+            var resultDictionary = new Dictionary<string, double>();
 
             for (int i = 0; i < 9; i++)
             {
-                if (i == 4 || !goodPixels[i])
-                    continue;
+                var sum = 0.0;
+                for (int j = 0; j < 9; j++)
+                    sum += distances[i, j];
 
-                rs[counter] = tempPixels[i].R;
-                gs[counter] = tempPixels[i].G;
-                bs[counter] = tempPixels[i].B;
-                counter++;
+                resultDictionary.Add(i.ToString(), sum);
             }
+            return resultDictionary;
+        }
 
-            if (counter > 0)
+        private double[,] CalculateDistances(Pixel[] pixels)
+        {
+            var distances = new double[9, 9];
+
+            for (int i = 0; i < 9; i++)
             {
-                var R = counter % 2 == 0 ? rs[counter / 2 + 1] : ((rs[counter / 2] + rs[counter / 2 + 1]) / 2);
-                var G = counter % 2 == 0 ? gs[counter / 2 + 1] : ((gs[counter / 2] + gs[counter / 2 + 1]) / 2);
-                var B = counter % 2 == 0 ? bs[counter / 2 + 1] : ((bs[counter / 2] + bs[counter / 2 + 1]) / 2);
-                return new Pixel((byte)R, (byte)G, (byte)B);
+                for (int j = 0; j < 9; j++)
+                {
+                    var left = pixels[i];
+                    var right = pixels[j];
+
+                    distances[i, j] = Math.Sqrt(Math.Pow(right.R - left.R, 2) + Math.Pow(right.G - left.G, 2) + Math.Pow(right.B - left.B, 2));
+                    distances[j, i] = distances[i, j];
+                }
             }
-            return tempPixels[4];
+            return distances;
         }
     }
 }

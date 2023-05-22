@@ -8,37 +8,57 @@ namespace NoiseRemovalAlgorithmTests
 {
     public class NoiseRemovalFileManager
     {
-        public string NoisyImagesPath { get; set; }
+        public string CorruptedImagesPath { get; set; }
         public string OutputMainFolderPath { get; set; }
-        public string OriginalImagesPath { get; set; }
+        public int Iterations { get; set; } = 3;
+        public int FASTThreshold { get; set; } = 40; //pobrane z publikacji
+        public int FAPGThreshold { get; set; } = 44; // 1/10 zalecana z 440 gdzie to max odleglosc
+
+        public string[] CorruptedImagesPaths { get; set; }
+
         public NoiseRemovalFileManager()
         {
         }
 
         public void ApplyFiltersOnAllImages()
         {
+            LoadFileNames();
+
             FASTandAMF();
-            /*
             FASTandWAF();
             FASTandVMF();
 
             FAPGandAMF();
             FAPGandWAF();
-            FAPGandVMF();*/
+            FAPGandVMF();
+        }
+
+        private void LoadFileNames()
+        {
+            DirectoryInfo directory = new DirectoryInfo(CorruptedImagesPath);
+            var files = directory.GetFiles("*.bmp");
+            CorruptedImagesPaths = files.OrderBy(x => GetFileNumber(x.Name)).Select(x => x.FullName).ToArray();
+        }
+
+        private int GetFileNumber(string name)
+        {
+            name = name.Split('.')[0];
+            name = name.Replace("noise", "");
+            return Convert.ToInt32(name);
         }
 
         private void FAPGandAMF()
         {
-            for (int i = 1; i < 25; i++)
+            var i = 1;
+            foreach (var path in CorruptedImagesPaths)
             {
-                var bytes = File.ReadAllBytes(NoisyImagesPath + "noise" + i.ToString() + ".bmp");
-
+                var bytes = File.ReadAllBytes(path);
                 var manager = new PixelArrayManager(bytes);
 
                 var fapg = new FAPG();
                 fapg.Width = manager.ExtendedWidth;
                 fapg.Height = manager.ExtendedHeight;
-                fapg.Threshold = 45;
+                fapg.Threshold = FAPGThreshold;
                 fapg.Pixels = manager.ExtendedArray;
                 fapg.WindowSize = 9;
 
@@ -52,40 +72,30 @@ namespace NoiseRemovalAlgorithmTests
                 amf.CorruptedPixels = detectedNoise;
 
                 var result = new Pixel[1, 1];
+                result = amf.RemoveNoise();
+                fapg.Pixels = result;
+                detectedNoise = fapg.DetectNoise();
 
+                amf.CorruptedPixels = detectedNoise;
+                amf.Pixels = result;
+                result = amf.RemoveNoise();
+                manager.ExtendedArray = result;
 
-                for (int z = 1; z < 6; z++)
-                {
-                    result = amf.RemoveNoise();
-                    fapg.Pixels = result;
-                    fapg.Threshold -= 5;
-                    detectedNoise = fapg.DetectNoise();
-
-                    amf.CorruptedPixels = detectedNoise;
-                    amf.Pixels = result;
-                    result = amf.RemoveNoise();
-                    manager.ExtendedArray = result;
-
-                    File.WriteAllBytes(OutputMainFolderPath + "fapg\\AMF\\" + i.ToString() + "iter" + z.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
-                }
+                File.WriteAllBytes(OutputMainFolderPath + "fapg\\AMF\\result" + i++.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
             }
         }
         private void FASTandAMF()
         {
-            var calculation = new CalculationManager();
-            for (int i = 1; i < 2; i++)
+            var i = 1;
+            foreach (var path in CorruptedImagesPaths)
             {
-                var noisyImageBytes = File.ReadAllBytes(NoisyImagesPath + "noise" + i.ToString() + ".bmp");
-                var originalImageBytes = File.ReadAllBytes(OriginalImagesPath + "kodim" + i.ToString() + ".bmp");
+                var bytes = File.ReadAllBytes(path);
 
-                var originalManager = new PixelArrayManager(originalImageBytes);
-                var originalNoisyImage = originalManager.ExtendedArray;
-
-                var manager = new PixelArrayManager(noisyImageBytes);
+                var manager = new PixelArrayManager(bytes);
                 var fast = new FAST();
                 fast.Width = manager.ExtendedWidth;
                 fast.Height = manager.ExtendedHeight;
-                fast.Threshold = 20;
+                fast.Threshold = FASTThreshold;
                 fast.Pixels = manager.ExtendedArray;
                 fast.WindowSize = 9;
 
@@ -99,40 +109,32 @@ namespace NoiseRemovalAlgorithmTests
                 amf.CorruptedPixels = detectedNoise;
 
                 var result = new Pixel[1, 1];
+                result = amf.RemoveNoise();
+                fast.Pixels = result;
+                detectedNoise = fast.DetectNoise();
 
-                for (int z = 1; z < 6; z++)
-                {
-                    result = amf.RemoveNoise();
-                    fast.Pixels = result;
-                    fast.Threshold += 10;
-                    detectedNoise = fast.DetectNoise();
+                amf.CorruptedPixels = detectedNoise;
+                amf.Pixels = result;
+                result = amf.RemoveNoise();
+                manager.ExtendedArray = result;
 
-                    amf.CorruptedPixels = detectedNoise;
-                    amf.Pixels = result;
-                    result = amf.RemoveNoise();
-                    manager.ExtendedArray = result;
-
-                    var psnr = calculation.CalculatePSNR(originalNoisyImage, result);
-                    var mae = calculation.CalculateMAE(originalNoisyImage, result);
-                    var ncd = calculation.CalculateNCD(originalNoisyImage, result);
-
-                    File.WriteAllBytes(OutputMainFolderPath + "fast\\AMF\\" + i.ToString() + "iter" + z.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
-                }
+                File.WriteAllBytes(OutputMainFolderPath + "fast\\AMF\\result" + i++.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
             }
         }
 
         private void FAPGandWAF()
         {
-            for (int i = 1; i < 25; i++)
+            var i = 1;
+            foreach (var path in CorruptedImagesPaths)
             {
-                var bytes = File.ReadAllBytes(NoisyImagesPath + "noise" + i.ToString() + ".bmp");
+                var bytes = File.ReadAllBytes(path);
 
                 var manager = new PixelArrayManager(bytes);
 
                 var fapg = new FAPG();
                 fapg.Width = manager.ExtendedWidth;
                 fapg.Height = manager.ExtendedHeight;
-                fapg.Threshold = 45;
+                fapg.Threshold = FAPGThreshold;
                 fapg.Pixels = manager.ExtendedArray;
                 fapg.WindowSize = 9;
 
@@ -146,38 +148,32 @@ namespace NoiseRemovalAlgorithmTests
                 waf.CorruptedPixels = detectedNoise;
 
                 var result = new Pixel[1, 1];
+                result = waf.RemoveNoise();
+                fapg.Pixels = result;
+                detectedNoise = fapg.DetectNoise();
 
+                waf.CorruptedPixels = detectedNoise;
+                waf.Pixels = result;
+                result = waf.RemoveNoise();
+                manager.ExtendedArray = result;
 
-                for (int z = 1; z < 6; z++)
-                {
-                    result = waf.RemoveNoise();
-                    fapg.Pixels = result;
-                    fapg.Threshold -= 5;
-                    detectedNoise = fapg.DetectNoise();
-
-                    waf.CorruptedPixels = detectedNoise;
-                    waf.Pixels = result;
-                    result = waf.RemoveNoise();
-                    manager.ExtendedArray = result;
-
-                    File.WriteAllBytes(OutputMainFolderPath + "fapg\\WAF\\" + i.ToString() + "iter" + z.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
-                }
+                File.WriteAllBytes(OutputMainFolderPath + "fapg\\WAF\\result" + i++.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
             }
-
         }
 
         private void FASTandWAF()
         {
-            for (int i = 1; i < 25; i++)
+            var i = 1;
+            foreach (var path in CorruptedImagesPaths)
             {
-                var bytes = File.ReadAllBytes(NoisyImagesPath + "noise" + i.ToString() + ".bmp");
+                var bytes = File.ReadAllBytes(path);
 
                 var manager = new PixelArrayManager(bytes);
 
                 var fast = new FAST();
                 fast.Width = manager.ExtendedWidth;
                 fast.Height = manager.ExtendedHeight;
-                fast.Threshold = 25;
+                fast.Threshold = FASTThreshold;
                 fast.Pixels = manager.ExtendedArray;
                 fast.WindowSize = 9;
 
@@ -191,37 +187,32 @@ namespace NoiseRemovalAlgorithmTests
                 waf.CorruptedPixels = detectedNoise;
 
                 var result = new Pixel[1, 1];
+                result = waf.RemoveNoise();
+                fast.Pixels = result;
+                detectedNoise = fast.DetectNoise();
 
+                waf.CorruptedPixels = detectedNoise;
+                waf.Pixels = result;
+                result = waf.RemoveNoise();
+                manager.ExtendedArray = result;
 
-                for (int z = 1; z < 6; z++)
-                {
-                    result = waf.RemoveNoise();
-                    fast.Pixels = result;
-                    fast.Threshold -= 2;
-                    detectedNoise = fast.DetectNoise();
-
-                    waf.CorruptedPixels = detectedNoise;
-                    waf.Pixels = result;
-                    result = waf.RemoveNoise();
-                    manager.ExtendedArray = result;
-
-                    File.WriteAllBytes(OutputMainFolderPath + "fast\\WAF\\" + i.ToString() + "iter" + z.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
-                }
+                File.WriteAllBytes(OutputMainFolderPath + "fast\\WAF\\result" + i++.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
             }
         }
 
         private void FASTandVMF()
         {
-            for (int i = 1; i < 25; i++)
+            var i = 1;
+            foreach (var path in CorruptedImagesPaths)
             {
-                var bytes = File.ReadAllBytes(NoisyImagesPath + "noise" + i.ToString() + ".bmp");
+                var bytes = File.ReadAllBytes(path);
 
                 var manager = new PixelArrayManager(bytes);
 
                 var fast = new FAST();
                 fast.Width = manager.ExtendedWidth;
                 fast.Height = manager.ExtendedHeight;
-                fast.Threshold = 20;
+                fast.Threshold = FASTThreshold;
                 fast.Pixels = manager.ExtendedArray;
                 fast.WindowSize = 9;
 
@@ -235,36 +226,32 @@ namespace NoiseRemovalAlgorithmTests
                 vmf.CorruptedPixels = detectedNoise;
 
                 var result = new Pixel[1, 1];
+                result = vmf.RemoveNoise();
+                fast.Pixels = result;
+                detectedNoise = fast.DetectNoise();
 
-                for (int z = 1; z < 6; z++)
-                {
-                    result = vmf.RemoveNoise();
-                    fast.Pixels = result;
-                    fast.Threshold += 10;
-                    detectedNoise = fast.DetectNoise();
+                vmf.CorruptedPixels = detectedNoise;
+                vmf.Pixels = result;
+                result = vmf.RemoveNoise();
+                manager.ExtendedArray = result;
 
-                    vmf.CorruptedPixels = detectedNoise;
-                    vmf.Pixels = result;
-                    result = vmf.RemoveNoise();
-                    manager.ExtendedArray = result;
-
-                    File.WriteAllBytes(OutputMainFolderPath + "fast\\VMF\\" + i.ToString() + "iter" + z.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
-                }
+                File.WriteAllBytes(OutputMainFolderPath + "fast\\VMF\\result" + i++.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
             }
         }
 
         private void FAPGandVMF()
         {
-            for (int i = 1; i < 25; i++)
+            var i = 1;
+            foreach (var path in CorruptedImagesPaths)
             {
-                var bytes = File.ReadAllBytes(NoisyImagesPath + "noise" + i.ToString() + ".bmp");
+                var bytes = File.ReadAllBytes(path);
 
                 var manager = new PixelArrayManager(bytes);
 
                 var fapg = new FAPG();
                 fapg.Width = manager.ExtendedWidth;
                 fapg.Height = manager.ExtendedHeight;
-                fapg.Threshold = 45;
+                fapg.Threshold = FAPGThreshold;
                 fapg.Pixels = manager.ExtendedArray;
                 fapg.WindowSize = 9;
 
@@ -278,22 +265,16 @@ namespace NoiseRemovalAlgorithmTests
                 vmf.CorruptedPixels = detectedNoise;
 
                 var result = new Pixel[1, 1];
+                result = vmf.RemoveNoise();
+                fapg.Pixels = result;
+                detectedNoise = fapg.DetectNoise();
 
+                vmf.CorruptedPixels = detectedNoise;
+                vmf.Pixels = result;
+                result = vmf.RemoveNoise();
+                manager.ExtendedArray = result;
 
-                for (int z = 1; z < 6; z++)
-                {
-                    result = vmf.RemoveNoise();
-                    fapg.Pixels = result;
-                    fapg.Threshold -= 5;
-                    detectedNoise = fapg.DetectNoise();
-
-                    vmf.CorruptedPixels = detectedNoise;
-                    vmf.Pixels = result;
-                    result = vmf.RemoveNoise();
-                    manager.ExtendedArray = result;
-
-                    File.WriteAllBytes(OutputMainFolderPath + "fapg\\VMF\\" + i.ToString() + "iter" + z.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
-                }
+                File.WriteAllBytes(OutputMainFolderPath + "fapg\\VMF\\result" + i++.ToString() + ".bmp", manager.ReturnBytesFrom2DPixelArray());
             }
         }
 

@@ -3,8 +3,14 @@
 using NoiseRemovalAlgorithmTests;
 using System;
 
+
 var manager = new NoiseRemovalFileManager();
 manager.OutputMainFolderPath = "C:\\Users\\Michal\\Desktop\\test_data\\";
-manager.NoisyImagesPath = "C:\\Users\\Michal\\Desktop\\test_data\\noisy_images\\";
-manager.OriginalImagesPath = "C:\\Users\\Michal\\Desktop\\test_data\\original_images\\";
+manager.CorruptedImagesPath = "C:\\Users\\Michal\\Desktop\\test_data\\noisy_images\\";
 manager.ApplyFiltersOnAllImages();
+
+var calculation = new CalculationManager();
+calculation.ResultsPath = "C:\\Users\\Michal\\Desktop\\test_data\\calculation_results\\";
+calculation.OriginalImagesPath = "C:\\Users\\Michal\\Desktop\\test_data\\original_images\\";
+calculation.RestoredImagePath = "C:\\Users\\Michal\\Desktop\\test_data\\";
+calculation.CalculateForAllCombinations();

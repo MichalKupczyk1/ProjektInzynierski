@@ -1,18 +1,75 @@
-﻿namespace NoiseRemovalAlgorithmTests
+﻿using System.IO;
+using System.Text.Json;
+
+namespace NoiseRemovalAlgorithmTests
 {
     public class CalculationManager
     {
-        public string NoisyImagePath { get; set; }
+        public string OriginalImagesPath { get; set; }
         public string RestoredImagePath { get; set; }
+        public string ResultsPath { get; set; }
+        public string FAST { get => "\\fast"; }
+        public string FAPG { get => "\\fapg"; }
+        public string WAF { get => "\\WAF\\"; }
+        public string VMF { get => "\\VMF\\"; }
+        public string AMF { get => "\\AMF\\"; }
         public CalculationManager()
         {
         }
 
-        public double CalculateNCD(Pixel[,] noisyImage, Pixel[,] restoredImage)
+        public void CalculateForAllCombinations()
+        {
+            CalculateAndSaveResultsForCombination(FAST + AMF, "fastamf.json");
+            CalculateAndSaveResultsForCombination(FAST + VMF, "fastvmf.json");
+            CalculateAndSaveResultsForCombination(FAST + WAF, "fastwaf.json");
+            CalculateAndSaveResultsForCombination(FAPG + AMF, "fapgamf.json");
+            CalculateAndSaveResultsForCombination(FAPG + VMF, "fapgvmf.json");
+            CalculateAndSaveResultsForCombination(FAPG + WAF, "fapgwaf.json");
+        }
+
+        public void CalculateAndSaveResultsForCombination(string subFolderPath, string outputFile)
+        {
+            var fileNames = GetAllFileNamesWithinDirectory(subFolderPath);
+            var originalFiles = GetAllOriginalFileNames();
+            var result = new List<CalculationResult>();
+            var i = 0;
+
+            foreach (var file in fileNames)
+            {
+                var restoredImageBytes = File.ReadAllBytes(file);
+                var restoredImageManager = new PixelArrayManager(restoredImageBytes);
+
+                var originalImageBytes = File.ReadAllBytes(originalFiles[i]);
+                var originalImageManager = new PixelArrayManager(originalImageBytes);
+
+                var psnr = CalculatePSNR(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
+                var mae = CalculateMAE(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
+                var ncd = CalculateNCD(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
+
+                result.Add(new CalculationResult(i++, psnr, mae, ncd, 0.0));
+            }
+            File.WriteAllText(ResultsPath + outputFile, JsonSerializer.Serialize(result));
+        }
+
+        private string[] GetAllFileNamesWithinDirectory(string subFolderPath)
+        {
+            DirectoryInfo directory = new DirectoryInfo(RestoredImagePath + subFolderPath);
+            var files = directory.GetFiles("*.bmp");
+            return files.Select(x => x.FullName).ToArray();
+        }
+
+        private string[] GetAllOriginalFileNames()
+        {
+            DirectoryInfo directory = new DirectoryInfo(OriginalImagesPath);
+            var files = directory.GetFiles("*.bmp");
+            return files.Select(x => x.FullName).ToArray();
+        }
+
+        public double CalculateNCD(Pixel[,] originalImage, Pixel[,] restoredImage)
         {
             var sum = 0.0;
-            var height = noisyImage.GetLength(0);
-            var width = noisyImage.GetLength(1);
+            var height = originalImage.GetLength(0);
+            var width = originalImage.GetLength(1);
 
             var noisyImageLab = new Lab[height, width];
             var restoredImageLab = new Lab[height, width];
@@ -21,11 +78,10 @@
             {
                 for (int j = 0; j < width; j++)
                 {
-                    noisyImageLab[i, j] = CalculateLab(noisyImage[i, j]);
+                    noisyImageLab[i, j] = CalculateLab(originalImage[i, j]);
                     restoredImageLab[i, j] = CalculateLab(restoredImage[i, j]);
                 }
             }
-
             return sum;
         }
 
@@ -109,17 +165,17 @@
         }
 
 
-        public double CalculatePSNR(Pixel[,] noisyImage, Pixel[,] restoredImage)
+        public double CalculatePSNR(Pixel[,] originalImage, Pixel[,] restoredImage)
         {
             var sum = 0.0;
-            var height = noisyImage.GetLength(0);
-            var width = noisyImage.GetLength(1);
+            var height = originalImage.GetLength(0);
+            var width = originalImage.GetLength(1);
 
             for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
-                    sum += MSE(noisyImage[i, j], restoredImage[i, j]);
+                    sum += MSE(originalImage[i, j], restoredImage[i, j]);
                 }
             }
             var mse = sum * (1.0 / (3 * width * height));
@@ -129,17 +185,17 @@
             return 20.0 * Math.Log10(255 / rmse);
         }
 
-        public double CalculateMAE(Pixel[,] noisyImage, Pixel[,] restoredImage)
+        public double CalculateMAE(Pixel[,] originalImage, Pixel[,] restoredImage)
         {
             var sum = 0;
-            var height = noisyImage.GetLength(0);
-            var width = noisyImage.GetLength(1);
+            var height = originalImage.GetLength(0);
+            var width = originalImage.GetLength(1);
 
             for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
-                    sum += MAE(noisyImage[i, j], restoredImage[i, j]);
+                    sum += MAE(originalImage[i, j], restoredImage[i, j]);
                 }
             }
             return sum * (1.0 / (3 * width * height));

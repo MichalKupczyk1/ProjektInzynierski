@@ -24,6 +24,7 @@ namespace NoiseRemovalAlgorithmTests
 
             var tempPixels = new Pixel[WindowSize];
             var tempNeighborMap = new short[WindowSize];
+            var tempCorruptedPixels = new bool[WindowSize];
             var index = 0;
             var pixels = Pixels.Clone() as Pixel[,];
 
@@ -38,10 +39,11 @@ namespace NoiseRemovalAlgorithmTests
                             for (int l = -1; l < 2; l++)
                             {
                                 tempPixels[index] = Pixels[i + l, j + k];
-                                tempNeighborMap[index++] = NeighborMap[i + l, j + k];
+                                tempNeighborMap[index] = NeighborMap[i + l, j + k];
+                                tempCorruptedPixels[index++] = CorruptedPixels[i + l, j + k];
                             }
                         }
-                        pixels[i, j] = CalculateWAF(tempPixels, tempNeighborMap);
+                        pixels[i, j] = CalculateWAF(tempPixels, tempNeighborMap, tempCorruptedPixels);
                     }
                     index = 0;
                 }
@@ -49,21 +51,21 @@ namespace NoiseRemovalAlgorithmTests
             return pixels;
         }
 
-        private Pixel CalculateWAF(Pixel[] pixels, short[] neighborMap)
+        private Pixel CalculateWAF(Pixel[] pixels, short[] neighborMap, bool[] corruptedPixels)
         {
             int R = 0, G = 0, B = 0;
             int amount = 0;
 
             for (int i = 0; i < neighborMap.Length; i++)
             {
-                if (i == 4 )
+                if (i == 4 || corruptedPixels[i])
                     continue;
                 amount += neighborMap[i];
             }
 
             for (int i = 0; i < pixels.Length; i++)
             {
-                if (i == 4)
+                if (i == 4 || corruptedPixels[i])
                     continue;
 
                 R += pixels[i].R * neighborMap[i];
