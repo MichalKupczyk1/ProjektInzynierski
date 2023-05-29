@@ -19,8 +19,8 @@ namespace NoiseRemovalAlgorithmTests
             var detectedNoise = new bool[Height, Width];
 
             var impulsivenessResults = CalculateImpulsiveness();
-            var impulsivenessData = impulsivenessResults.impulsivenessData;
-            var impulsivenessCalculation = impulsivenessResults.impulsivenessCalculation;
+            var impulsivenessData = impulsivenessResults;
+            var impulsivenessCalculation = impulsivenessResults;
 
             var minImpulsiveness = new short[WindowSize];
             var substraction = 0;
@@ -59,12 +59,11 @@ namespace NoiseRemovalAlgorithmTests
             return temp;
         }
 
-        private (short[,] impulsivenessData, short[,] impulsivenessCalculation) CalculateImpulsiveness()
+        private short[,] CalculateImpulsiveness()
         {
             var index = 0;
             var tempPixels = new Pixel[WindowSize];
 
-            var impulsivenessCalculation = new short[Height, Width];
             var impulsivenessData = new short[Height, Width];
 
             for (int i = 1; i < Height - 1; i++)
@@ -80,11 +79,10 @@ namespace NoiseRemovalAlgorithmTests
                     }
                     var difference = CalculateDistance(tempPixels, i, j);
                     impulsivenessData[i, j] = (short)FindMin(difference); //suma dwoch najmniejszych z pominieciem zera
-                    impulsivenessCalculation[i, j] = impulsivenessData[i, j];
                     index = 0;
                 }
             }
-            return (impulsivenessData, impulsivenessCalculation);
+            return impulsivenessData;
         }
 
         private int FindMin(short[] difference)

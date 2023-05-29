@@ -162,8 +162,7 @@ namespace NoiseRemovalAlgorithmTests
 
         public bool[,] AddNoise(double noiseLevel)
         {
-            bool[,] noiseArray = new bool[ExtendedHeight, ExtendedWidth];
-
+            var noiseArray = new bool[ExtendedHeight, ExtendedWidth];
             int length = (int)(ExtendedWidth * ExtendedHeight);
             Coordinates[] coordinates = new Coordinates[length];
 
@@ -184,16 +183,31 @@ namespace NoiseRemovalAlgorithmTests
             for (int i = 0; i < length * noiseLevel; i++)
             {
                 ExtendedArray[coordinates[i].X, coordinates[i].Y] = new Pixel((byte)randomGenerator.Next(255), (byte)randomGenerator.Next(255), (byte)randomGenerator.Next(255));
-                //noiseArray[coordinates[i].X, coordinates[i].Y] = false;
+                noiseArray[coordinates[i].X, coordinates[i].Y] = true;
             }
 
-            /*
-            for (int i = (int)(length * noiseLevel); i < length; i++)
-                noiseArray[coordinates[i].X, coordinates[i].Y] = true;
-            */
             return noiseArray;
         }
 
+        public Pixel[,] ConvertNoiseMapToPixelArray(bool[,] noiseMap)
+        {
+            var height = noiseMap.GetLength(0);
+            var width = noiseMap.GetLength(1);
+
+            var result = new Pixel[height, width];
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    if (noiseMap[i, j])
+                        result[i, j] = new Pixel(0, 0, 0);
+                    else
+                        result[i, j] = new Pixel(255, 255, 255);
+                }
+            }
+            return result;
+        }
         public byte[] PixelToByteArray(Pixel[] pixels)
         {
             var result = new byte[Amount];

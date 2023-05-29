@@ -12,15 +12,13 @@ namespace NoiseRemovalAlgorithmTests
         public double PSNR { get; set; }
         public double MAE { get; set; }
         public double NCD { get; set; }
-        public double NCC { get; set; }
 
-        public CalculationResult(int id, double PSNR, double MAE, double NCD, double NCC)
+        public CalculationResult(int id, double PSNR, double MAE, double NCD)
         {
             this.Id = id;
             this.PSNR = PSNR;
             this.MAE = MAE;
             this.NCD = NCD;
-            this.NCC = NCC;
         }
     }
 }

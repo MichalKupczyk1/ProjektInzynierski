@@ -5,62 +5,123 @@ namespace NoiseRemovalAlgorithmTests
 {
     public class CalculationManager
     {
-        public string OriginalImagesPath { get; set; }
-        public string RestoredImagePath { get; set; }
-        public string ResultsPath { get; set; }
-        public string FAST { get => "\\fast"; }
-        public string FAPG { get => "\\fapg"; }
-        public string WAF { get => "\\WAF\\"; }
-        public string VMF { get => "\\VMF\\"; }
-        public string AMF { get => "\\AMF\\"; }
         public CalculationManager()
         {
         }
 
         public void CalculateForAllCombinations()
         {
-            CalculateAndSaveResultsForCombination(FAST + AMF, "fastamf.json");
-            CalculateAndSaveResultsForCombination(FAST + VMF, "fastvmf.json");
-            CalculateAndSaveResultsForCombination(FAST + WAF, "fastwaf.json");
-            CalculateAndSaveResultsForCombination(FAPG + AMF, "fapgamf.json");
-            CalculateAndSaveResultsForCombination(FAPG + VMF, "fapgvmf.json");
-            CalculateAndSaveResultsForCombination(FAPG + WAF, "fapgwaf.json");
+            CalculatePixelDetectionRatio(FileUtils.FAST, "fastdetection.json");
+            CalculatePixelDetectionRatio(FileUtils.FAPG, "fapgdetection.json");
+            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.AMF, "fastamf.json");
+            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.VMF, "fastvmf.json");
+            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.WAF, "fastwaf.json");
+            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.AMF, "fapgamf.json");
+            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.VMF, "fapgvmf.json");
+            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.WAF, "fapgwaf.json");
+        }
+
+        public void CalculatePixelDetectionRatio(string subFolderPath, string outputFile)
+        {
+            var detectionNoiseMaps = GetAllFileNamesStartingFromMainFolder(subFolderPath + "\\noise_maps");
+            var originalNoiseMaps = GetAllFileNamesStartingFromMainFolder("\\noisy_images\\noise_maps");
+            int iterator = 0;
+            var result = new List<NoiseDetectionResult>();
+
+            foreach (var file in originalNoiseMaps)
+            {
+                var originalNoiseMapBytes = File.ReadAllBytes(file);
+                var detectedNoiseMapBytes = File.ReadAllBytes(detectionNoiseMaps[iterator++]);
+
+                var originalManager = new PixelArrayManager(originalNoiseMapBytes);
+                var detectedManager = new PixelArrayManager(detectedNoiseMapBytes);
+
+                var noiseDetectionResult = CalculateNoiseDetection(originalManager.Pixels, detectedManager.Pixels);
+                result.Add(noiseDetectionResult);
+            }
+            File.WriteAllText(FileUtils.ResultsPath + outputFile, JsonSerializer.Serialize(result));
+        }
+
+        private NoiseDetectionResult CalculateNoiseDetection(Pixel[,] originalNoise, Pixel[,] detectedNoise)
+        {
+            var height = originalNoise.GetLength(0);
+            var width = originalNoise.GetLength(1);
+            var result = new NoiseDetectionResult();
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    if (originalNoise[i, j].R == 0) //zaszumiony piksel
+                    {
+                        if (originalNoise[i, j].R == detectedNoise[i, j].R)
+                        {
+                            //poprawnie wykryty szum
+                            result.TruePositives++;
+                        }
+                        else
+                        {
+                            //pominięty szum
+                            result.FalseNegatives++;
+                        }
+                    }
+                    else //nienaruszony piksel
+                    {
+                        if (originalNoise[i, j].R == detectedNoise[i, j].R)
+                        {
+                            //poprawnie zaznaczony nienaruszony piksel
+                            result.TrueNegatives++;
+                        }
+                        else
+                        {
+                            //szum oznaczony jako nienaruszony piksel
+                            result.FalsePositives++;
+                        }
+                    }
+                }
+            }
+            return result;
         }
 
         public void CalculateAndSaveResultsForCombination(string subFolderPath, string outputFile)
         {
-            var fileNames = GetAllFileNamesWithinDirectory(subFolderPath);
+            var fileNames = GetAllFileNamesStartingFromMainFolder(subFolderPath);
             var originalFiles = GetAllOriginalFileNames();
             var result = new List<CalculationResult>();
-            var i = 0;
+            var iterator = 0;
 
             foreach (var file in fileNames)
             {
                 var restoredImageBytes = File.ReadAllBytes(file);
                 var restoredImageManager = new PixelArrayManager(restoredImageBytes);
 
-                var originalImageBytes = File.ReadAllBytes(originalFiles[i]);
+                var originalImageBytes = File.ReadAllBytes(originalFiles[iterator]);
                 var originalImageManager = new PixelArrayManager(originalImageBytes);
 
                 var psnr = CalculatePSNR(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
                 var mae = CalculateMAE(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
                 var ncd = CalculateNCD(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
 
-                result.Add(new CalculationResult(i++, psnr, mae, ncd, 0.0));
+                result.Add(new CalculationResult(iterator++, psnr, mae, ncd));
             }
-            File.WriteAllText(ResultsPath + outputFile, JsonSerializer.Serialize(result));
+            File.WriteAllText(FileUtils.ResultsPath + outputFile, JsonSerializer.Serialize(result));
         }
 
-        private string[] GetAllFileNamesWithinDirectory(string subFolderPath)
+        private string[] GetAllFileNamesStartingFromMainFolder(string subFolderPath)
         {
-            DirectoryInfo directory = new DirectoryInfo(RestoredImagePath + subFolderPath);
+            return GetFileNamesFromDirectory(FileUtils.OutputMainFolderPath + subFolderPath);
+        }
+
+        private string[] GetFileNamesFromDirectory(string path)
+        {
+            DirectoryInfo directory = new DirectoryInfo(path);
             var files = directory.GetFiles("*.bmp");
             return files.Select(x => x.FullName).ToArray();
         }
 
         private string[] GetAllOriginalFileNames()
         {
-            DirectoryInfo directory = new DirectoryInfo(OriginalImagesPath);
+            DirectoryInfo directory = new DirectoryInfo(FileUtils.OriginalImagesPath);
             var files = directory.GetFiles("*.bmp");
             return files.Select(x => x.FullName).ToArray();
         }
@@ -68,102 +129,23 @@ namespace NoiseRemovalAlgorithmTests
         public double CalculateNCD(Pixel[,] originalImage, Pixel[,] restoredImage)
         {
             var sum = 0.0;
+            var distanceSum = 0.0;
             var height = originalImage.GetLength(0);
             var width = originalImage.GetLength(1);
-
-            var noisyImageLab = new Lab[height, width];
-            var restoredImageLab = new Lab[height, width];
 
             for (int i = 0; i < height; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
-                    noisyImageLab[i, j] = CalculateLab(originalImage[i, j]);
-                    restoredImageLab[i, j] = CalculateLab(restoredImage[i, j]);
+                    distanceSum += Math.Sqrt(Math.Pow(originalImage[i, j].R - restoredImage[i, j].R, 2)
+                        + Math.Pow(originalImage[i, j].G - restoredImage[i, j].G, 2)
+                        + Math.Pow(originalImage[i, j].B - restoredImage[i, j].B, 2));
+
+                    sum += Math.Sqrt(Math.Pow(originalImage[i, j].R, 2) + Math.Pow(originalImage[i, j].G, 2) + Math.Pow(originalImage[i, j].B, 2));
                 }
             }
-            return sum;
+            return distanceSum / sum;
         }
-
-        private Lab CalculateLab(Pixel pixel)
-        {
-            var xyz = ConvertPixelToXYZ(pixel);
-            return ConvertXYZToLab(xyz);
-        }
-
-        private Lab ConvertXYZToLab(XYZ xyz)
-        {
-            var result = new Lab(0, 0, 0);
-            xyz = DivideByRefs(xyz);
-
-            var fx = CalculateFunction(xyz.X);
-            var fy = CalculateFunction(xyz.Y);
-            var fz = CalculateFunction(xyz.Z);
-
-            result.L = CalculateL(xyz.Y);
-            result.a = 500 * (fx - fy);
-            result.b = 200 * (fy - fz);
-
-            return result;
-        }
-
-        private float CalculateFunction(float val)
-        {
-            if (val > 0.008856f)
-                return (float)(Math.Pow(val, 1.0 / 3));
-            return val * 7.787f + 16 / 116f;
-        }
-
-        private XYZ DivideByRefs(XYZ xyz)
-        {
-            var xref = 0.95047f;
-            var yref = 1f;
-            var zref = 1.08883f;
-
-            xyz.X /= xref;
-            xyz.Y /= yref;
-            xyz.Z /= zref;
-
-            return xyz;
-        }
-
-        private float CalculateL(float y)
-        {
-            if (y > 0.008856f)
-                return (float)(116 * Math.Pow(y, 1.0 / 3) - 16);
-            return 903.3f * y;
-        }
-
-        private XYZ ConvertPixelToXYZ(Pixel pixel)
-        {
-            var result = new XYZ(0, 0, 0);
-
-            var r = (float)pixel.R / 255;
-            var g = (float)pixel.G / 255;
-            var b = (float)pixel.B / 255;
-
-            r = CheckValue(r);
-            g = CheckValue(g);
-            b = CheckValue(b);
-
-            r *= 100;
-            g *= 100;
-            b *= 100;
-
-            result.X = r * 0.4124f + g * 0.3576f + b * 0.1805f;
-            result.Y = r * 0.2126f + g * 0.7152f + b * 0.0722f;
-            result.Z = r * 0.0193f + g * 0.01192f + b * 0.9505f;
-
-            return result;
-        }
-
-        private float CheckValue(float val)
-        {
-            if (val > 0.04045)
-                return (float)Math.Pow((val + 0.055) / 1.055, 2.4);
-            return val / 12.92f;
-        }
-
 
         public double CalculatePSNR(Pixel[,] originalImage, Pixel[,] restoredImage)
         {
