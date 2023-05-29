@@ -11,14 +11,57 @@ namespace NoiseRemovalAlgorithmTests
 
         public void CalculateForAllCombinations()
         {
-            CalculatePixelDetectionRatio(FileUtils.FAST, "fastdetection.json");
-            CalculatePixelDetectionRatio(FileUtils.FAPG, "fapgdetection.json");
-            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.AMF, "fastamf.json");
-            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.VMF, "fastvmf.json");
-            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.WAF, "fastwaf.json");
-            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.AMF, "fapgamf.json");
-            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.VMF, "fapgvmf.json");
-            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.WAF, "fapgwaf.json");
+            CalculatePixelDetectionRatio(FileUtils.FAST, "fastdetection.txt");
+            CalculatePixelDetectionRatio(FileUtils.FAPG, "fapgdetection.txt");
+            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.AMF, "fastamf.txt");
+            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.VMF, "fastvmf.txt");
+            CalculateAndSaveResultsForCombination(FileUtils.FAST + FileUtils.WAF, "fastwaf.txt");
+            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.AMF, "fapgamf.txt");
+            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.VMF, "fapgvmf.txt");
+            CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.WAF, "fapgwaf.txt");
+        }
+
+        private void SaveDetectionRatioToTextFiles(List<NoiseDetectionResult> result, string path)
+        {
+            var falsePositives = "False positives\n";
+            falsePositives += ReturnListOfDataAsString(result.Select(x => x.FalsePositives.ToString()).ToList());
+
+            var truePositives = "True positives\n";
+            truePositives += ReturnListOfDataAsString(result.Select(x => x.TruePositives.ToString()).ToList());
+
+            var falseNegatives = "False negatives\n";
+            falseNegatives += ReturnListOfDataAsString(result.Select(x => x.FalseNegatives.ToString()).ToList());
+
+            var trueNegatives = "True negatives\n";
+            trueNegatives += ReturnListOfDataAsString(result.Select(x => x.TrueNegatives.ToString()).ToList());
+
+            var fileContent = falsePositives + truePositives + falseNegatives + trueNegatives;
+            File.WriteAllText(path, fileContent);
+        }
+
+        private void SaveCalculationResultsToTextFiles(List<CalculationResult> result, string path)
+        {
+            var PSNR = "PSNR\n";
+            PSNR += ReturnListOfDataAsString(result.Select(x => x.PSNR.ToString()).ToList());
+
+            var MAE = "MAE\n";
+            MAE += ReturnListOfDataAsString(result.Select(x => x.MAE.ToString()).ToList());
+
+            var NCD = "NCD\n";
+            NCD += ReturnListOfDataAsString(result.Select(x => x.NCD.ToString()).ToList());
+
+            var fileContent = PSNR + MAE + NCD;
+            File.WriteAllText(path, fileContent);
+        }
+
+        private string ReturnListOfDataAsString(List<string> strings)
+        {
+            var result = "";
+            foreach (var str in strings)
+            {
+                result += str + "\n";
+            }
+            return result;
         }
 
         public void CalculatePixelDetectionRatio(string subFolderPath, string outputFile)
@@ -39,7 +82,7 @@ namespace NoiseRemovalAlgorithmTests
                 var noiseDetectionResult = CalculateNoiseDetection(originalManager.Pixels, detectedManager.Pixels);
                 result.Add(noiseDetectionResult);
             }
-            File.WriteAllText(FileUtils.ResultsPath + outputFile, JsonSerializer.Serialize(result));
+            SaveDetectionRatioToTextFiles(result, FileUtils.ResultsPath + outputFile);
         }
 
         private NoiseDetectionResult CalculateNoiseDetection(Pixel[,] originalNoise, Pixel[,] detectedNoise)
@@ -104,7 +147,7 @@ namespace NoiseRemovalAlgorithmTests
 
                 result.Add(new CalculationResult(iterator++, psnr, mae, ncd));
             }
-            File.WriteAllText(FileUtils.ResultsPath + outputFile, JsonSerializer.Serialize(result));
+            SaveCalculationResultsToTextFiles(result, FileUtils.ResultsPath + outputFile);
         }
 
         private string[] GetAllFileNamesStartingFromMainFolder(string subFolderPath)
