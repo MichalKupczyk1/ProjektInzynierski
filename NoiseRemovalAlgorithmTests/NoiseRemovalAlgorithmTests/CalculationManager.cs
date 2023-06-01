@@ -21,26 +21,21 @@ namespace NoiseRemovalAlgorithmTests
             CalculateAndSaveResultsForCombination(FileUtils.FAPG + FileUtils.WAF, "fapgwaf.txt");
         }
 
-        private void SaveDetectionRatioToTextFiles(List<NoiseDetectionResult> result, string path)
+        private void SaveDetectionRatioToTextFiles(List<NoiseDetectionResult> results, string path)
         {
-            var falsePositives = "False positives\n";
-            falsePositives += ReturnListOfDataAsString(result.Select(x => x.FalsePositives.ToString()).ToList());
+            var fileContent = "MCC\n";
 
-            var truePositives = "True positives\n";
-            truePositives += ReturnListOfDataAsString(result.Select(x => x.TruePositives.ToString()).ToList());
+            foreach (var result in results)
+            {
+                var mcc = result.CalculateMCC();
+                fileContent += mcc.ToString() + "\n";
+            }
 
-            var falseNegatives = "False negatives\n";
-            falseNegatives += ReturnListOfDataAsString(result.Select(x => x.FalseNegatives.ToString()).ToList());
-
-            var trueNegatives = "True negatives\n";
-            trueNegatives += ReturnListOfDataAsString(result.Select(x => x.TrueNegatives.ToString()).ToList());
-
-            var fileContent = falsePositives + truePositives + falseNegatives + trueNegatives;
             File.WriteAllText(path, fileContent);
         }
 
         private void SaveCalculationResultsToTextFiles(List<CalculationResult> result, string path)
-        {
+        {   
             var PSNR = "PSNR\n";
             PSNR += ReturnListOfDataAsString(result.Select(x => x.PSNR.ToString()).ToList());
 
@@ -141,9 +136,9 @@ namespace NoiseRemovalAlgorithmTests
                 var originalImageBytes = File.ReadAllBytes(originalFiles[iterator]);
                 var originalImageManager = new PixelArrayManager(originalImageBytes);
 
-                var psnr = CalculatePSNR(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
-                var mae = CalculateMAE(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
-                var ncd = CalculateNCD(originalImageManager.ExtendedArray, restoredImageManager.ExtendedArray);
+                var psnr = CalculatePSNR(originalImageManager.Pixels, restoredImageManager.Pixels);
+                var mae = CalculateMAE(originalImageManager.Pixels, restoredImageManager.Pixels);
+                var ncd = CalculateNCD(originalImageManager.Pixels, restoredImageManager.Pixels);
 
                 result.Add(new CalculationResult(iterator++, psnr, mae, ncd));
             }

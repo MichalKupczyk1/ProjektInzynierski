@@ -1,4 +1,5 @@
-﻿using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
+﻿using ProjektInzynierskiWindowedApp.Logic.Utils;
+using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
 using System;
 using System.Linq;
 
@@ -6,16 +7,17 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
 {
     public class FAST : NoiseDetection
     {
+        private double M { get => 2.0; }
+
         public override bool[,] DetectNoise()
         {
             var detectedNoise = new bool[Height, Width];
 
-            var impulsivenessResults = CalculateImpulsiveness();
-            var impulsivenessData = impulsivenessResults.impulsivenessData;
-            var impulsivenessCalculation = impulsivenessResults.impulsivenessCalculation;
+            var trimmedDistancesResult = CalculateTrimmedDistances();
+            var trimmedDistancesData = trimmedDistancesResult;
+            var trimmedDistancesCalculation = trimmedDistancesResult;
 
-            var minImpulsiveness = new short[WindowSize];
-            var substraction = 0;
+            var minImpulsiveness = new double[WindowSize];
             var counter = 0;
 
             for (int i = 1; i < Height - 1; i++)
@@ -26,13 +28,13 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                     {
                         for (int l = -1; l < 2; l++)
                         {
-                            minImpulsiveness[counter++] = impulsivenessData[i + l, j + k];
+                            minImpulsiveness[counter++] = trimmedDistancesData[i + l, j + k];
                         }
                     }
-                    substraction = FindImpulsiveness(minImpulsiveness);
-                    impulsivenessCalculation[i, j] = (short)(impulsivenessData[i, j] - substraction);
+                    var substraction = FindMinTrimmedDistanceWithinWindow(minImpulsiveness);
+                    trimmedDistancesCalculation[i, j] = (short)(trimmedDistancesData[i, j] - substraction);
 
-                    detectedNoise[i, j] = impulsivenessCalculation[i, j] > Threshold;
+                    detectedNoise[i, j] = trimmedDistancesCalculation[i, j] / M > Threshold;
 
                     counter = 0;
                 }
@@ -40,9 +42,9 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
             return detectedNoise;
         }
 
-        private short FindImpulsiveness(short[] array)
+        private double FindMinTrimmedDistanceWithinWindow(double[] array)
         {
-            short temp = array[0];
+            var temp = array[0];
             for (int i = 1; i < WindowSize; i++)
             {
                 if (array[i] < temp)
@@ -51,13 +53,12 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
             return temp;
         }
 
-        private (short[,] impulsivenessData, short[,] impulsivenessCalculation) CalculateImpulsiveness()
+        private double[,] CalculateTrimmedDistances()
         {
             var index = 0;
             var tempPixels = new Pixel[WindowSize];
 
-            var impulsivenessCalculation = new short[Height, Width];
-            var impulsivenessData = new short[Height, Width];
+            var trimmedDistances = new double[Height, Width];
 
             for (int i = 1; i < Height - 1; i++)
             {
@@ -70,56 +71,37 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                             tempPixels[index++] = Pixels[i + l, j + k];
                         }
                     }
-                    var difference = CalculateDistance(tempPixels, i, j);
-                    impulsivenessData[i, j] = (short)FindMin(difference); //suma dwoch najmniejszych z pominieciem zera
-                    impulsivenessCalculation[i, j] = impulsivenessData[i, j];
+                    trimmedDistances[i, j] = CalculateDistance(tempPixels); //suma dwoch dystansów najmniejszych z pominieciem dystansu do samego siebie
                     index = 0;
                 }
             }
-            return (impulsivenessData, impulsivenessCalculation);
+            return trimmedDistances;
         }
 
-        private int FindMin(short[] difference)
+        private double CalculateDistance(Pixel[] tempPixels)
         {
-            var firstMin = short.MaxValue;
-            var secondMin = short.MaxValue;
-
-            for (int i = 0; i < difference.Length; i++)
-            {
-                if (i == 4)
-                    continue;
-                if (difference[i] < firstMin)
-                {
-                    secondMin = firstMin;
-                    firstMin = difference[i];
-                    continue;
-                }
-                if (difference[i] < secondMin)
-                {
-                    secondMin = difference[i];
-                }
-
-            }
-            return firstMin + secondMin;
-        }
-
-        private short[] CalculateDistance(Pixel[] tempPixels, int ii, int jj)
-        {
-            var distances = new short[3];
-            var difference = new short[WindowSize];
+            var firstMin = double.MaxValue;
+            var secondMin = double.MaxValue;
+            var middlePixel = tempPixels[4];
 
             for (int i = 0; i < 9; i++)
             {
-                if (i == 4)
+                if (i == 4) //pominięcie środkowego
                     continue;
-                distances[0] = (short)Math.Abs(tempPixels[4].R - tempPixels[i].R);
-                distances[1] = (short)Math.Abs(tempPixels[4].G - tempPixels[i].G);
-                distances[2] = (short)Math.Abs(tempPixels[4].B - tempPixels[i].B);
+                var distance = PixelUtils.CalculateEuclideanDistance(middlePixel, tempPixels[i]);
 
-                difference[i] = distances.Max();
+                if (distance < firstMin)
+                {
+                    secondMin = firstMin;
+                    firstMin = distance;
+                    continue;
+                }
+                if (distance < secondMin)
+                {
+                    secondMin = distance;
+                }
             }
-            difference[4] = 0;
-            return difference;
+            return firstMin + secondMin;
         }
     }
 }

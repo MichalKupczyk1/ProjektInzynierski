@@ -8,7 +8,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
     {
         public override bool[,] DetectNoise()
         {
-            DetectedNoise = new bool[Height, Width];
+            var detectedNoise = new bool[Height, Width];
 
             var tempPixels = new Pixel[WindowSize];
             var index = 0;
@@ -24,11 +24,11 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseDetection
                             tempPixels[index++] = Pixels[i + l, j + k];
                         }
                     }
-                    DetectedNoise[i, j] = IsCorrupted(tempPixels);
+                    detectedNoise[i, j] = IsCorrupted(tempPixels);
                     index = 0;
                 }
             }
-            return DetectedNoise;
+            return detectedNoise;
         }
 
         private bool IsCorrupted(Pixel[] pixels)

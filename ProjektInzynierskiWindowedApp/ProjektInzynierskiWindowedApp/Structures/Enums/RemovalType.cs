@@ -8,7 +8,8 @@ namespace ProjektInzynierskiWindowedApp.Structures.Enums
 {
     public enum RemovalType
     {
-        Mean = 0,
-        Sum = 1,
+        AMF = 0,
+        VMF = 1,
+        WAF = 2,
     }
 }

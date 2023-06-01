@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media.Media3D;
 
 namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
 {
-    public class MeanRemoval : NoiseRemoval
+    public class AMF : NoiseRemoval
     {
         public override Pixel[,] RemoveNoise()
         {
@@ -22,20 +21,19 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
             {
                 for (int j = 1; j < Width - 1; j++)
                 {
-                    if (DetectedNoise[i, j])
+                    if (CorruptedPixels[i, j])
                     {
                         for (int k = -1; k < 2; k++)
                         {
                             for (int l = -1; l < 2; l++)
                             {
                                 tempPixels[index] = Pixels[i + l, j + k];
-                                goodPixels[index] = !DetectedNoise[i + l, j + k];
+                                goodPixels[index] = !CorruptedPixels[i + l, j + k];
                                 index++;
                             }
                         }
-                        var pixel = CalculateMean(tempPixels, goodPixels);
+                        var pixel = AMFReplacement(tempPixels, goodPixels);
                         pixelClone[i, j] = pixel;
-                        var test = Pixels[i, j];
                         index = 0;
                     }
                 }
@@ -43,7 +41,7 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
             return pixelClone;
         }
 
-        private Pixel CalculateMean(Pixel[] tempPixels, bool[] goodPixels)
+        private Pixel AMFReplacement(Pixel[] tempPixels, bool[] goodPixels)
         {
             int r = 0, g = 0, b = 0;
 
@@ -60,10 +58,10 @@ namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
                     amount++;
                 }
             }
-            if (amount > 4)
+            if (amount > 1)
                 return new Pixel((byte)(r / amount), (byte)(g / amount), (byte)(b / amount));
             else
-                return tempPixels[4];
+                return PixelUtils.CalculateVectorMedian(tempPixels);
         }
     }
 }

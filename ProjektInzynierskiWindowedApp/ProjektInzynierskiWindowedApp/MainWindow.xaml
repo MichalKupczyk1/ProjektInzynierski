@@ -15,7 +15,6 @@
         <Button x:Name="btn_usunSzum" Content="Usuń szum" HorizontalAlignment="Left" Margin="208,302,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_usunSzum_Click" Grid.Row="1"/>
         <ComboBox x:Name="cmb_DetectionType" HorizontalAlignment="Left" Margin="471,298,0,0" VerticalAlignment="Top" Width="173" Height="22" SelectionChanged="cmb_DetectionType_SelectionChanged" Grid.Row="1"/>
         <ComboBox x:Name="cmb_RemovalType" HorizontalAlignment="Left" Margin="471,328,0,0" VerticalAlignment="Top" Width="173" SelectionChanged="cmb_RemovalType_SelectionChanged" Grid.Row="1"/>
-        <Image x:Name="img_Image" HorizontalAlignment="Left" Height="287" Margin="18,30,0,0" VerticalAlignment="Top" Width="628" Grid.RowSpan="2"/>
-
+        <Image Stretch="Fill" x:Name="img_Image" HorizontalAlignment="Left" Height="287" Margin="18,30,0,0" VerticalAlignment="Top" Width="628" Grid.RowSpan="2"/>
     </Grid>
 </Window>

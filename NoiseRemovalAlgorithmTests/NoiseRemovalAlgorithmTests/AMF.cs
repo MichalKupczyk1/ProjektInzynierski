@@ -37,7 +37,7 @@ namespace NoiseRemovalAlgorithmTests
                                 index++;
                             }
                         }
-                        var pixel = CalculateMean(tempPixels, goodPixels);
+                        var pixel = AMFReplacement(tempPixels, goodPixels);
                         pixelClone[i, j] = pixel;
                         index = 0;
                     }
@@ -46,7 +46,7 @@ namespace NoiseRemovalAlgorithmTests
             return pixelClone;
         }
 
-        private Pixel CalculateMean(Pixel[] tempPixels, bool[] goodPixels)
+        private Pixel AMFReplacement(Pixel[] tempPixels, bool[] goodPixels)
         {
             int r = 0, g = 0, b = 0;
 
@@ -63,10 +63,10 @@ namespace NoiseRemovalAlgorithmTests
                     amount++;
                 }
             }
-            if (amount > 2)
+            if (amount > 1)
                 return new Pixel((byte)(r / amount), (byte)(g / amount), (byte)(b / amount));
             else
-                return tempPixels[4];
+                return PixelUtils.CalculateVectorMedian(tempPixels);
         }
     }
 }

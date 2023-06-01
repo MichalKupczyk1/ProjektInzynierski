@@ -2,7 +2,7 @@
 
 using NoiseRemovalAlgorithmTests;
 
-var testDataManager = new TestDataPreparationManager(0.1);
+var testDataManager = new TestDataPreparationManager(0.3);
 testDataManager.ApplyNoiseToAllImages();
 
 var manager = new NoiseRemovalFileManager();

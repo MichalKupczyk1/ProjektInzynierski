@@ -1,21 +1,16 @@
-﻿using System;
+﻿using ProjektInzynierskiWindowedApp.Logic.Utils;
+using ProjektInzynierskiWindowedApp.Structures.BitmapClasses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NoiseRemovalAlgorithmTests
+namespace ProjektInzynierskiWindowedApp.Logic.NoiseRemoval
 {
-    public class VMF
+    public class VMF : NoiseRemoval
     {
-        public long Width { get; set; }
-        public long Height { get; set; }
-        public int WindowSize { get; set; }
-        public int Threshold { get; set; }
-        public Pixel[,] Pixels { get; set; }
-        public bool[,] CorruptedPixels { get; set; }
-
-        public Pixel[,] RemoveNoise()
+        public override Pixel[,] RemoveNoise()
         {
             var index = 0;
             var tempPixels = new Pixel[WindowSize];

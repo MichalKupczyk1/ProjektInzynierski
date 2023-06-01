@@ -8,8 +8,8 @@ namespace NoiseRemovalAlgorithmTests
 {
     public class NoiseRemovalFileManager
     {
-        public int FASTThreshold { get; set; } = 40;
-        public int FAPGThreshold { get; set; } = 44;
+        public double FASTThreshold { get; set; } = 32;
+        public double FAPGThreshold { get; set; } = 35;
         public string[] CorruptedImagesPaths { get; set; }
 
         public NoiseRemovalFileManager()
@@ -73,7 +73,7 @@ namespace NoiseRemovalAlgorithmTests
                 fast.Threshold = FASTThreshold;
                 fast.Pixels = manager.ExtendedArray;
                 fast.WindowSize = 9;
-                
+
                 var noiseMap = fast.DetectNoise();
                 manager.ExtendedArray = manager.ConvertNoiseMapToPixelArray(noiseMap);
 

@@ -31,8 +31,9 @@ namespace ProjektInzynierskiWindowedApp
     {
         private byte[] Image { get; set; }
         public DetectionType DetectionType { get; set; } = DetectionType.FAST;
-        public RemovalType RemovalType { get; set; } = RemovalType.Mean;
-        public int Iters { get; set; } = 5;
+        public RemovalType RemovalType { get; set; } = RemovalType.AMF;
+        public double Threshold { get; set; } = 40;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -45,9 +46,10 @@ namespace ProjektInzynierskiWindowedApp
             cmb_DetectionType.Items.Add(DetectionType.FAPG.ToString());
             cmb_DetectionType.SelectedIndex = 0;
 
-            cmb_RemovalType.Items.Add(RemovalType.Mean.ToString());
+            cmb_RemovalType.Items.Add(RemovalType.AMF.ToString());
+            cmb_RemovalType.Items.Add(RemovalType.VMF.ToString());
+            cmb_RemovalType.Items.Add(RemovalType.WAF.ToString());
             cmb_RemovalType.SelectedIndex = 0;
-            Iters = 5;
         }
 
         private void btn_zaladujBitmape_Click(object sender, RoutedEventArgs e)
@@ -81,13 +83,10 @@ namespace ProjektInzynierskiWindowedApp
                 var result = new Pixel[0, 0];
                 var detectedNoise = new bool[0, 0];
 
-                for (int i = 0; i < Iters; i++)
-                {
-                    detectedNoise = DetectNoise(arrayManager, i);
-                    result = RemoveNoise(arrayManager, detectedNoise);
+                detectedNoise = DetectNoise(arrayManager);
+                result = RemoveNoise(arrayManager, detectedNoise);
+                arrayManager.ExtendedArray = result;
 
-                    arrayManager.ExtendedArray = result;
-                }
                 var bytes = arrayManager.ReturnBytesFrom2DPixelArray();
 
                 if (bytes.Count() > 0)
@@ -96,29 +95,52 @@ namespace ProjektInzynierskiWindowedApp
             }
         }
 
-        private bool[,] DetectNoise(PixelArrayManager manager, int iteration)
+        private bool[,] DetectNoise(PixelArrayManager manager)
         {
             if (DetectionType == DetectionType.FAPG)
-                return FAPGDetection(manager, 40 + (10 * (iteration - 1)));
+                return FAPGDetection(manager,Threshold);
             else
-                return FASTDetection(manager, 40);
+                return FASTDetection(manager, Threshold);
         }
 
         private Pixel[,] RemoveNoise(PixelArrayManager manager, bool[,] detectedNoise)
         {
-            return MeanRemoval(manager, detectedNoise);
+            if (RemovalType == RemovalType.AMF)
+                return AMFRemoval(manager, detectedNoise);
+            else if (RemovalType == RemovalType.VMF)
+                return VMFRemoval(manager, detectedNoise);
+            else
+                return WAFRemoval(manager, detectedNoise);
         }
 
-        private Pixel[,] MeanRemoval(PixelArrayManager manager, bool[,] detectedNoise)
+        private Pixel[,] AMFRemoval(PixelArrayManager manager, bool[,] detectedNoise)
         {
-            var mean = new MeanRemoval();
-            mean.Pixels = manager.ExtendedArray;
-            mean.Height = manager.ExtendedHeight;
-            mean.Width = manager.ExtendedWidth;
-            mean.DetectedNoise = detectedNoise;
-            return mean.RemoveNoise();
+            var amf = new AMF();
+            amf.Pixels = manager.ExtendedArray;
+            amf.Height = manager.ExtendedHeight;
+            amf.Width = manager.ExtendedWidth;
+            amf.CorruptedPixels = detectedNoise;
+            return amf.RemoveNoise();
         }
-        private bool[,] FASTDetection(PixelArrayManager manager, int threshold)
+        private Pixel[,] VMFRemoval(PixelArrayManager manager, bool[,] detectedNoise)
+        {
+            var vmf = new VMF();
+            vmf.Pixels = manager.ExtendedArray;
+            vmf.Height = manager.ExtendedHeight;
+            vmf.Width = manager.ExtendedWidth;
+            vmf.CorruptedPixels = detectedNoise;
+            return vmf.RemoveNoise();
+        }
+        private Pixel[,] WAFRemoval(PixelArrayManager manager, bool[,] detectedNoise)
+        {
+            var waf = new WAF();
+            waf.Pixels = manager.ExtendedArray;
+            waf.Height = manager.ExtendedHeight;
+            waf.Width = manager.ExtendedWidth;
+            waf.CorruptedPixels = detectedNoise;
+            return waf.RemoveNoise();
+        }
+        private bool[,] FASTDetection(PixelArrayManager manager, double threshold)
         {
             var fast = new FAST();
             fast.Width = manager.ExtendedWidth;
@@ -129,7 +151,7 @@ namespace ProjektInzynierskiWindowedApp
             return fast.DetectNoise();
         }
 
-        private bool[,] FAPGDetection(PixelArrayManager manager, int threshold)
+        private bool[,] FAPGDetection(PixelArrayManager manager, double threshold)
         {
             var fapg = new FAPG();
             fapg.Width = manager.ExtendedWidth;

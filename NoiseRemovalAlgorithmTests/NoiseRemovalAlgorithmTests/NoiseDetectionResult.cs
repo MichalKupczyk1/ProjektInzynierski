@@ -8,20 +8,20 @@ namespace NoiseRemovalAlgorithmTests
 {
     public class NoiseDetectionResult
     {
-        public int TruePositives { get; set; } = 0;
-        public int FalsePositives { get; set; } = 0;
-        public int FalseNegatives { get; set; } = 0;
-        public int TrueNegatives { get; set; } = 0;
+        public double TruePositives { get; set; } = 0;
+        public double FalsePositives { get; set; } = 0;
+        public double FalseNegatives { get; set; } = 0;
+        public double TrueNegatives { get; set; } = 0;
         public NoiseDetectionResult()
         {
 
         }
-        public NoiseDetectionResult(int truePositives, int falsePositives, int falseNegatives, int trueNegatives)
+
+        public double CalculateMCC()
         {
-            TruePositives = truePositives;
-            FalsePositives = falsePositives;
-            FalseNegatives = falseNegatives;
-            TrueNegatives = trueNegatives;
+            var res = ((TruePositives * TrueNegatives) - (FalsePositives * FalseNegatives))
+                / Math.Sqrt((TruePositives + FalsePositives) * (TruePositives + FalseNegatives) * (TrueNegatives + FalsePositives) * (TrueNegatives + FalseNegatives));
+            return res;
         }
     }
 }

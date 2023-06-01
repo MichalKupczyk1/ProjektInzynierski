@@ -11,7 +11,7 @@ namespace NoiseRemovalAlgorithmTests
         public long Width { get; set; }
         public long Height { get; set; }
         public int WindowSize { get; set; }
-        public int Threshold { get; set; }
+        public double Threshold { get; set; }
         public Pixel[,] Pixels { get; set; }
 
         public bool[,] DetectNoise()

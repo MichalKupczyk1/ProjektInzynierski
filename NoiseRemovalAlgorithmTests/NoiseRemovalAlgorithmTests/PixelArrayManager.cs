@@ -12,7 +12,7 @@ namespace NoiseRemovalAlgorithmTests
         public long Height { get; set; }
         public long ExtendedHeight { get => Height + 2; }
         public long ExtendedWidth { get => Width + 2; }
-        public int Step { get; set; }
+        public int Padding { get; set; }
         public int Amount { get; set; }
         public byte[] Bytes { get; set; }
         public Pixel[,] Pixels { get; set; }
@@ -24,8 +24,8 @@ namespace NoiseRemovalAlgorithmTests
             var dimentions = CalculateWidthAndHeight(bytes);
             Width = dimentions.width;
             Height = dimentions.height;
-            Step = CountStep(Width * 3);
-            Amount = (int)(54 + (Width * Height * 3) + (Step * Height));
+            Padding = CalculatePadding(Width * 3);
+            Amount = (int)(54 + (Width * Height * 3) + (Padding * Height));
             var pixels = SaveToPixelArray(bytes);
             Pixels = SaveTo2DArray(pixels);
             Extend2DArray();
@@ -85,7 +85,7 @@ namespace NoiseRemovalAlgorithmTests
             return PixelToByteArray(oneDimArray); ;
         }
 
-        public int CountStep(long width)
+        public int CalculatePadding(long width)
         {
             return (width % 4 != 0) ? (short)(4 - (width % 4)) : 0;
         }
@@ -99,16 +99,16 @@ namespace NoiseRemovalAlgorithmTests
 
             for (i = 0; i < bytes.Length - 54;)
             {
-                if (Step != 0 && counter != 0 && (counter / 3) % Width == 0)
+                if (Padding != 0 && counter != 0 && (counter / 3) % Width == 0)
                 {
-                    i += Step;
+                    i += Padding;
                     counter = 0;
                     continue;
                 }
                 pixels[z++] = new Pixel(bytes[i + 54], bytes[i + 55], bytes[i + 56]);
                 i += 3;
 
-                if (Step != 0)
+                if (Padding != 0)
                     counter += 3;
             }
             return pixels;
@@ -219,9 +219,9 @@ namespace NoiseRemovalAlgorithmTests
             //skipping header info which is always the same as in the original image
             for (int i = 54; i < Amount - 3;)
             {
-                if (Step != 0 && counter != 0 && counter / 3 % Width == 0)
+                if (Padding != 0 && counter != 0 && counter / 3 % Width == 0)
                 {
-                    i += Step;
+                    i += Padding;
                     counter = 0;
                 }
                 result[i] = pixels[a].R;

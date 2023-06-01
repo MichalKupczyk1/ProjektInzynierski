@@ -8,11 +8,11 @@ namespace ProjektInzynierskiWindowedApp.Structures.BitmapClasses
 {
     public class BitmapInfo
     {
-        public bool[,] DetectedNoise { get; set; }
+        public bool[,] CorruptedPixels { get; set; }
         public Pixel[,] Pixels { get; set; }
         public int WindowSize { get; set; } = 9;
         public long Width { get; set; }
         public long Height { get; set; }
-        public int Threshold { get; set; }
+        public double Threshold { get; set; }
     }
 }
