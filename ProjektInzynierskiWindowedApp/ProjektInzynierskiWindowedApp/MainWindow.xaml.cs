@@ -29,10 +29,12 @@ namespace ProjektInzynierskiWindowedApp
     /// </summary>
     public partial class MainWindow : Window
     {
+       private double parser = 0.0;
         private byte[] Image { get; set; }
         public DetectionType DetectionType { get; set; } = DetectionType.FAST;
         public RemovalType RemovalType { get; set; } = RemovalType.AMF;
-        public double Threshold { get; set; } = 40;
+        public double Threshold { get => Double.TryParse(this.txt_Threshold.Text, out parser) ? Convert.ToDouble(this.txt_Threshold.Text) : 40.0; }
+        private int Iter { get; set; } = 0;
 
         public MainWindow()
         {
@@ -50,6 +52,11 @@ namespace ProjektInzynierskiWindowedApp
             cmb_RemovalType.Items.Add(RemovalType.VMF.ToString());
             cmb_RemovalType.Items.Add(RemovalType.WAF.ToString());
             cmb_RemovalType.SelectedIndex = 0;
+            this.txt_Threshold.Text = "40";
+
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\historia"))
+                Directory.CreateDirectory(Environment.CurrentDirectory + "\\historia");
+
         }
 
         private void btn_zaladujBitmape_Click(object sender, RoutedEventArgs e)
@@ -72,7 +79,23 @@ namespace ProjektInzynierskiWindowedApp
         {
             ImageSource imageSource = new BitmapImage(new Uri(path));
             this.img_Image.Source = imageSource;
-            this.img_Image.Stretch = Stretch.None;
+        }
+
+        private void btn_zapiszBitmape_Click(object sender, RoutedEventArgs e)
+        {
+            if (Image.Count() > 0)
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "bitmap (*bmp)|*.bmp|All files (*.*)|*.*";
+                var filePath = "";
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    filePath = saveFileDialog.FileName;
+                    File.WriteAllBytes(filePath, Image);
+                }
+                if (filePath != "")
+                    WyswietlBitmape(filePath);
+            }
         }
 
         private void btn_usunSzum_Click(object sender, RoutedEventArgs e)
@@ -87,18 +110,18 @@ namespace ProjektInzynierskiWindowedApp
                 result = RemoveNoise(arrayManager, detectedNoise);
                 arrayManager.ExtendedArray = result;
 
-                var bytes = arrayManager.ReturnBytesFrom2DPixelArray();
-
-                if (bytes.Count() > 0)
-                    File.WriteAllBytes("result.bmp", bytes);
-                WyswietlBitmape("C:\\Users\\Michal\\source\\repos\\ProjektInzynierski\\ProjektInzynierskiWindowedApp\\ProjektInzynierskiWindowedApp\\bin\\Debug\\net6.0-windows\\result.bmp");
+                Image = arrayManager.ReturnBytesFrom2DPixelArray();
+                var newPath = Environment.CurrentDirectory + "\\historia\\" + DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss") + ".bmp";
+                File.WriteAllBytes(newPath, Image);
+                WyswietlBitmape(newPath);
+                Iter++;
             }
         }
 
         private bool[,] DetectNoise(PixelArrayManager manager)
         {
             if (DetectionType == DetectionType.FAPG)
-                return FAPGDetection(manager,Threshold);
+                return FAPGDetection(manager, Threshold);
             else
                 return FASTDetection(manager, Threshold);
         }

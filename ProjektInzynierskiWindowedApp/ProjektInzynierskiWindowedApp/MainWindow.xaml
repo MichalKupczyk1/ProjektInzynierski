@@ -5,16 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ProjektInzynierskiWindowedApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="670" MinWidth="670" MinHeight="450" MaxWidth="670" MaxHeight="450">
-    <Grid>
+        WindowState="Maximized"
+        Title="Usuwanie szumu"
+        Background="LightGray">
+    <Grid HorizontalAlignment="Center">
         <Grid.RowDefinitions>
-            <RowDefinition Height="55*"/>
-            <RowDefinition Height="379*"/>
+            <RowDefinition Height="6*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Button x:Name="btn_zaladujBitmape" Content="Załaduj bitmapę" HorizontalAlignment="Left" Margin="18,302,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_zaladujBitmape_Click" Grid.Row="1"/>
-        <Button x:Name="btn_usunSzum" Content="Usuń szum" HorizontalAlignment="Left" Margin="208,302,0,0" VerticalAlignment="Top" Height="48" Width="174" Click="btn_usunSzum_Click" Grid.Row="1"/>
-        <ComboBox x:Name="cmb_DetectionType" HorizontalAlignment="Left" Margin="471,298,0,0" VerticalAlignment="Top" Width="173" Height="22" SelectionChanged="cmb_DetectionType_SelectionChanged" Grid.Row="1"/>
-        <ComboBox x:Name="cmb_RemovalType" HorizontalAlignment="Left" Margin="471,328,0,0" VerticalAlignment="Top" Width="173" SelectionChanged="cmb_RemovalType_SelectionChanged" Grid.Row="1"/>
-        <Image Stretch="Fill" x:Name="img_Image" HorizontalAlignment="Left" Height="287" Margin="18,30,0,0" VerticalAlignment="Top" Width="628" Grid.RowSpan="2"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1">
+            </ColumnDefinition>
+            <ColumnDefinition Width="*">
+            </ColumnDefinition>
+            <ColumnDefinition Width="1">
+            </ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Image Stretch="Uniform" x:Name="img_Image" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" Grid.ColumnSpan="3"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+            <Button x:Name="btn_zaladujBitmape" Content="Załaduj bitmapę" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="174" Click="btn_zaladujBitmape_Click" Grid.Row="1"/>
+            <UniformGrid Columns="2" Rows="2">
+            <ComboBox x:Name="cmb_DetectionType" HorizontalAlignment="Left" VerticalAlignment="Top" Width="173" Height="22" SelectionChanged="cmb_DetectionType_SelectionChanged" Grid.Row="1"/>
+            <ComboBox x:Name="cmb_RemovalType" HorizontalAlignment="Left" VerticalAlignment="Top" Width="173" SelectionChanged="cmb_RemovalType_SelectionChanged" Grid.Row="1"/>
+                <Label Name="lbl_Threshold" Content="Threshold" Grid.Row="1" Grid.ColumnSpan="1"/>
+                <TextBox x:Name="txt_Threshold" Grid.Row="2" Grid.ColumnSpan="1"/>
+            </UniformGrid>
+            <Button x:Name="btn_usunSzum" Content="Usuń szum" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="48" Width="174" Click="btn_usunSzum_Click" Grid.Row="1"/>
+            <Button x:Name="btn_zapiszBitmape" Content="Zapisz bitmape" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="48" Width="174" Click="btn_zapiszBitmape_Click" Grid.Row="1"/>
+        </StackPanel>
     </Grid>
 </Window>
