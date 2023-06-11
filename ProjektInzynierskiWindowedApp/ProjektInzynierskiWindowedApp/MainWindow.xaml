@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ProjektInzynierskiWindowedApp"
         mc:Ignorable="d"
         WindowState="Maximized"
-        Title="Usuwanie szumu"
+        Title="Okno wyboru"
         Background="LightGray">
     <Grid HorizontalAlignment="Center">
         <Grid.RowDefinitions>
@@ -21,17 +21,10 @@
             <ColumnDefinition Width="1">
             </ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Image Stretch="Uniform" x:Name="img_Image" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" Grid.ColumnSpan="3"/>
+        <Label x:Name="lbl_tytul" Content="Projekt inżynierski" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Grid.ColumnSpan="2"/>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">
-            <Button x:Name="btn_zaladujBitmape" Content="Załaduj bitmapę" HorizontalAlignment="Left" VerticalAlignment="Top" Height="48" Width="174" Click="btn_zaladujBitmape_Click" Grid.Row="1"/>
-            <UniformGrid Columns="2" Rows="2">
-            <ComboBox x:Name="cmb_DetectionType" HorizontalAlignment="Left" VerticalAlignment="Top" Width="173" Height="22" SelectionChanged="cmb_DetectionType_SelectionChanged" Grid.Row="1"/>
-            <ComboBox x:Name="cmb_RemovalType" HorizontalAlignment="Left" VerticalAlignment="Top" Width="173" SelectionChanged="cmb_RemovalType_SelectionChanged" Grid.Row="1"/>
-                <Label Name="lbl_Threshold" Content="Threshold" Grid.Row="1" Grid.ColumnSpan="1"/>
-                <TextBox x:Name="txt_Threshold" Grid.Row="2" Grid.ColumnSpan="1"/>
-            </UniformGrid>
-            <Button x:Name="btn_usunSzum" Content="Usuń szum" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="48" Width="174" Click="btn_usunSzum_Click" Grid.Row="1"/>
-            <Button x:Name="btn_zapiszBitmape" Content="Zapisz bitmape" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="48" Width="174" Click="btn_zapiszBitmape_Click" Grid.Row="1"/>
+            <Button x:Name="btn_prezentacjaDzialania" Content="Prezentacja działania" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="48" Width="174" Click="btn_prezentacjaDzialania_Click" Grid.Row="1"/>
+            <Button x:Name="btn_wykonajObliczenia" Content="Wykonaj obliczenia" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="48" Width="174" Click="btn_wykonajObliczenia_Click" Grid.Row="1"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -24,4 +24,18 @@ namespace ProjektInzynierskiWindowedApp.Structures.BitmapClasses
             return this.MemberwiseClone();
         }
     }
+
+    public class Lab
+    {
+        public double L { get; set; } = 0;
+        public double a { get; set; } = 0;
+        public double b { get; set; } = 0;
+
+        public Lab(double L, double a, double b)
+        {
+            this.L = L;
+            this.a = a;
+            this.b = b;
+        }
+    }
 }
