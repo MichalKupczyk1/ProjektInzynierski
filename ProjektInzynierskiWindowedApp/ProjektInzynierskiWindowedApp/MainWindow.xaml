@@ -5,9 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ProjektInzynierskiWindowedApp"
         mc:Ignorable="d"
-        WindowState="Maximized"
+        WindowStartupLocation="CenterOwner"
         Title="Okno wyboru"
-        Background="LightGray">
+        Background="LightGray"
+        MaxWidth="329" MinWidth="329"
+        MaxHeight="130" MinHeight="130">
     <Grid HorizontalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="6*"/>
